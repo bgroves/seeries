@@ -21,9 +21,27 @@ Dragging left or right on a graph updates the time window displayed on the entir
 
 When live updating is on, new data is fetched at the rate that a new pixel would be drawn at the current time scale and the graphs are updated with that data as it comes in.
 
+## API
+seeries' API has one endpoint, series. It takes four parameters:
+* **start** - an absolute time
+* **end** - an absolute time
+* **points** - integer number of points to return for that start and end
+* **series** - a set of series names
+
+It returns a JSON object with a field per series name each containing a series object. A series object has this schema:
+* **segments** - an array of segment objects each containing these fields. If the underlying series has coverage for the entire requested time, there will only be a single object in the array
+  * **start** - an absolute time
+  * **end** - an absolute time
+  * **mins** - an array of numbers of min values over that time period
+  * **maxs** - an arrary of numbers of max values over that time period
+* **points** - integer number of points the source series would use to represent the requested start and end time. If the source samples at a higher rate than the number of requested points over the given time range, this will be equal to the input points value. If it's at a lower rate, this will be at the sampling rate of the requested series
+
+If any of the series don't exist, a 404 is returned with a JSON object containing the unknown series:
+* **unknown** - array of passed in series names that weren't found
+
 ## Later
 ### More graph layout
-Would be nice to be able to say some graphs are wider than others and define how many graphs go in a row
+Would be nice to be able to say some graphs are wider than others and define how many graphs go in a row. Was thinking maybe we could say there are 6 columns per row and that a graph can be from 1 to 6 columns. 6 is nice since it lets you divide a row into half or thirds. I can't see us needing more granularity than that though.
 
 ### Annotations
 Would be cool to persistently annotate spots in a time series and have those show up in future graphing sessions
