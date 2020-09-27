@@ -4,9 +4,9 @@ Graphs preconfigured sets of time series and allows explorations of those graphs
 ## Dashboards
 The seeries frontend has multiple dashboards, which are configured on the backend. A viewer can choose which dashboard to view, but the series and layout for the dashboard aren't modifiable from the UI.
 
-The dashboard configuration specifies a few parameters for all graphs and then a list of graphs to display on that dashboard. The parameters that are global to the dashboard are:
-* **start** - an absolute or relative time
-* **end** - an absolute or relative time
+The dashboard configuration specifies a few parameters for all graphs and then a list of graphs to display on that dashboard. The configuration that's global to the dashboard is:
+* **start** - an absolute or relative time for initial graph display
+* **end** - an absolute or relative time for initial graph display
 * **live** - a boolean indicating if the graphs should fetch new data and redraw as time marches on
 
 Then each graph in the list has this configuration:
@@ -40,6 +40,8 @@ If any of the series don't exist, a 404 is returned with a JSON object containin
 * **unknown** - array of passed in series names that weren't found
 
 ## Later
+Things that we will almost certainly want at some point. We're explicitly not doing them now to keep things simpler to ship something.
+
 ### More graph layout
 Would be nice to be able to say some graphs are wider than others and define how many graphs go in a row. Was thinking maybe we could say there are 6 columns per row and that a graph can be from 1 to 6 columns. 6 is nice since it lets you divide a row into half or thirds. I can't see us needing more granularity than that though.
 
@@ -48,3 +50,9 @@ Would be cool to persistently annotate spots in a time series and have those sho
 
 ### Live URLs
 As views are edited, the URL should update to encode the settings and let the user's current view be passed to someone else
+
+### Dashboard creation and configuration UI
+Duh.
+
+### Authentication
+Will need this eventually.
