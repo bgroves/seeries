@@ -56,3 +56,10 @@ Duh.
 
 ### Authentication
 Will need this eventually.
+
+## Bootstrap
+This repo contains some sample data and a script to create a Timescale DB in Docker and load it. To do so:
+1. cd <root of your seeries checkout>
+2. sh recreate_db.sh
+
+This assumes that you have Docker and a reasonably recent vintage of Python 3 installed. I've been running it with Python 3.8.6
