@@ -1,0 +1,12 @@
+version: '3.8'
+services:
+    db:
+        build: db
+        ports: 
+            - 5432:5432
+        environment: 
+            POSTGRES_USER: seeries
+            POSTGRES_PASSWORD: RcJhCBt2CE2dz7#B
+            POSTGRES_DB: seeries
+        volumes: 
+            - "/var/lib/postgresql/data"

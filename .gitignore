@@ -1,2 +1,2 @@
 .direnv
-bootstrap/generated_sql
+db/target
