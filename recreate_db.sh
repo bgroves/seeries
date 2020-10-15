@@ -7,19 +7,20 @@ fi
 
 generate_sql() {
   echo "-- Generating data SQL"
-  mkdir -p db/build/initdb
+  INIT_DIR=db/build/initdb
+  mkdir -p $INIT_DIR
   # Start at 100 as the postgres container runs these in 
   # order(https://github.com/docker-library/docs/blob/master/postgres/README.md#initialization-scripts) 
   # and the timescale container we're basing off of adds three scripts starting with 0:
   # https://github.com/timescale/timescaledb-docker/tree/master/docker-entrypoint-initdb.d 
-  cp db/src/CREATE.sql db/build/initdb/100_CREATE.sql
+  cp db/src/CREATE.sql $INIT_DIR/100_CREATE.sql
   COUNT=101
   for f in bootstrap/sensorpush/exports/*.csv; do
     LOCATION=`basename -s .csv $f`
-    python3 bootstrap/sensorpush/csv_to_sql.py $LOCATION $f > db/build/initdb/${COUNT}_${LOCATION}.sql
+    python3 bootstrap/sensorpush/csv_to_sql.py $LOCATION $f > $INIT_DIR/${COUNT}_${LOCATION}.sql
     ((COUNT=COUNT+1))
   done
-  python3 bootstrap/tempest/json_to_sql.py > db/build/initdb/${COUNT}_tempest.sql
+  python3 bootstrap/tempest/json_to_sql.py > $INIT_DIR/${COUNT}_tempest.sql
 }
 
 restart_container() {
