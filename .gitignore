@@ -1,5 +1,4 @@
 .direnv
-db/target
-bootstrap/generated_sql
+build
 node_modules
 yarn-error.log
