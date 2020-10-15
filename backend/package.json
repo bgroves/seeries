@@ -16,8 +16,7 @@
     "typescript": "^4.0.3"
   },
   "scripts": {
-    "start": "nodemon index.ts",
-    "build": "tsc --project ./",
-    "dev": "node_modules/.bin/ts-node-dev --compiler-host --prefer-ts-exts -- src/index.ts "
+    "start": "ts-node-dev --transpile-only -- src/index.ts",
+    "build": "tsc --project ./"
   }
 }
