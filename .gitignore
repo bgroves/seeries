@@ -1,2 +1,5 @@
 .direnv
 db/target
+bootstrap/generated_sql
+node_modules
+yarn-error.log

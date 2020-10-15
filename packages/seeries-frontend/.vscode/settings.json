@@ -1,0 +1,8 @@
+{
+  "eslint.debug": false,
+  "eslint.format.enable": true,
+  "eslint.lintTask.enable": true,
+  "eslint.packageManager": "yarn",
+  "eslint.alwaysShowStatus": true,
+  "eslint.options": {}
+}

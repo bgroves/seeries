@@ -1,0 +1,21 @@
+.loading-indicator {
+  pointer-events: none;
+  width: 4rem;
+  height: 4rem;
+  float: right;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .loading-indicator {
+    animation: loading-indicator-spin infinite 4s linear;
+  }
+}
+
+@keyframes loading-indicator-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
