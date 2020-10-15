@@ -1,2 +1,3 @@
 .direnv
-db/target
+build
+node_modules
