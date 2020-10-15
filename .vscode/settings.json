@@ -1,0 +1,5 @@
+{
+    "python.formatting.provider": "black",
+    "python.pythonPath": ".direnv/python-3.8.6/bin/python",
+    "python.linting.enabled": true
+}
