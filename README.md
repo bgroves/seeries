@@ -63,3 +63,10 @@ This repo contains some sample data and a script to create a Timescale DB in Doc
 2. sh recreate_db.sh
 
 This assumes that you have Docker and a reasonably recent vintage of Python 3 installed. I've been running it with Python 3.8.6
+
+## Running the Frontend
+This should make sure that yarn fixes the dependencies from create-react-app:
+1. cd <root of your seeries checkout>
+2. yarn install or yarn start-frontend
+
+After they've been installed it will also run directly from packages/seeries-frontend with yarn start.

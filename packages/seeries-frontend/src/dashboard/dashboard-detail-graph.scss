@@ -1,0 +1,13 @@
+@import '../theme';
+
+.dashboard-detail-graph {
+  margin-bottom: 1rem;
+}
+
+.dark svg {
+  background-color: $dark-bg-color;
+  color: $dark-fg-color;
+  path {
+    color: $dark-fg-color;
+  }
+}

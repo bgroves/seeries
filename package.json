@@ -1,0 +1,18 @@
+{
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build-frontend": "cd packages/seeries-frontend && yarn build",
+    "start-frontend": "cd packages/seeries-frontend && yarn start"
+  },
+  "devDependencies": {
+    "lerna": "^3.22.0",
+    "prettier": "2.1.1"
+  },
+  "resolutions": {
+    "@typescript-eslint/eslint-plugin": "^4.4.1",
+    "@typescript-eslint/parser": "^4.4.1"
+  }
+}
