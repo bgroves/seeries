@@ -1,19 +1,13 @@
 import express from 'express';
-import * as db from '../zapatos/src';
-import * as s from '../zapatos/schema';
-import pg from 'pg';
+import Router from "express-promise-router";
+import { fetchSeries } from './handlers';
 
-const pool = new pg.Pool({
-    "user": "seeries",
-    "host": "localhost",
-    "password": "RcJhCBt2CE2dz7#B"
-});
+const router = Router();
+router.get('/series', fetchSeries);
+
 const app = express();
+app.use(router);
 const PORT = 8000;
-app.get('/', async (req, res) => {
-    const celsius = await db.sql<s.celsius.SQL, s.celsius.Selectable[]>`SELECT time, celsius FROM celsius WHERE device_id = 5 LIMIT 10`.run(pool);
-    res.send(celsius);
-});
 app.listen(PORT, () => {
     console.log(`🐇[series]: Server is hopping at https://localhost:${PORT}`);
 });
