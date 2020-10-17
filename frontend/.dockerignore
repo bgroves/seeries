@@ -1,0 +1,10 @@
+# Ignore everything by default. This way nothing can leak into the build context.
+*
+
+!.eslintignore
+!.eslintrc.json
+!tsconfig.json
+!package.json
+!/docker/**
+!/public/**
+!/src/**
