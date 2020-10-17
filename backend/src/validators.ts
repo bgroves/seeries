@@ -17,6 +17,15 @@ export function requireInQuery(req: express.Request, param: string): string {
     return req.query[param] as string;
 }
 
+export function requireEnumInQuery<T>(req: express.Request, enumType: object, param: string): string {
+    const q = requireInQuery(req, param);
+    const found = Object.keys(enumType).find((el) => el === q);
+    if (found === undefined) {
+        throw new ValidationError(`${param} must be one of ${Object.keys(enumType)}. Got '${q}'`);
+    }
+    return found;
+}
+
 export function requireDateTimeInQuery(req: express.Request, param: string): Date {
     const q = requireInQuery(req, param);
     if (!/\d\d\d\d-\d\d-\d\dT\d\d:\d\d\:\d\d\.\d\d\dZ/.test(q)) {

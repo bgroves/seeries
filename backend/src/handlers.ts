@@ -1,7 +1,7 @@
 import express from 'express';
 
 import { pool } from './db';
-import { requireInQuery, requireDateTimeInQuery, requireIntInQuery, ValidationError } from './validators';
+import { requireInQuery, requireDateTimeInQuery, requireEnumInQuery, requireIntInQuery, ValidationError } from './validators';
 
 
 interface PartialSegment {
@@ -14,12 +14,18 @@ interface Segment extends PartialSegment {
     end: Date
 }
 
+enum Aggregation {
+    MAX = 'MAX',
+    MIN = 'MIN',
+    AVG = 'AVG'
+}
+
 export async function fetchSeries(req: express.Request, res: express.Response): Promise<void> {
     const start = requireDateTimeInQuery(req, 'start');
     const end = requireDateTimeInQuery(req, 'end');
     const deviceName = requireInQuery(req, 'device_name');
     const sensor = requireInQuery(req, 'sensor');
-    const aggregation = requireInQuery(req, 'aggregation');
+    const aggregation = requireEnumInQuery(req, Aggregation, 'aggregation');
     const points = requireIntInQuery(req, 'points');
 
     if (points > 16_384) {

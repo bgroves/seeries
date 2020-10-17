@@ -10,7 +10,7 @@ const baseParams = {
     end: baseEnd,
     device_name: "office",
     sensor: "celsius",
-    aggregation: "max",
+    aggregation: "MAX",
     points: 10
 };
 
@@ -42,6 +42,19 @@ test('Too many points', async () => {
         await axios.get('http://localhost:8000/series', { params: params });
     } catch (error: any) {
         assert.strictEqual(error.response.status, 400);
+        return;
+    }
+    assert.fail("Expected request with lots of points to raise a 400");
+});
+
+test('Unknown aggregation', async () => {
+    const params = { ...baseParams };
+    params.aggregation = "; DROP TABLES;";
+    try {
+        await axios.get('http://localhost:8000/series', { params: params });
+    } catch (error: any) {
+        assert.strictEqual(error.response.status, 400);
+        assert.ok((error.response.data as string).indexOf("AVG") != -1);
         return;
     }
     assert.fail("Expected request with lots of points to raise a 400");
