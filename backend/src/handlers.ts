@@ -1,7 +1,7 @@
 import express from 'express';
 
 import { pool } from './db';
-import { requireInQuery, requireDateTimeInQuery, requireIntInQuery } from './validators';
+import { requireInQuery, requireDateTimeInQuery, requireIntInQuery, ValidationError } from './validators';
 
 
 interface PartialSegment {
@@ -21,6 +21,10 @@ export async function fetchSeries(req: express.Request, res: express.Response): 
     const sensor = requireInQuery(req, 'sensor');
     const aggregation = requireInQuery(req, 'aggregation');
     const points = requireIntInQuery(req, 'points');
+
+    if (points > 16_384) {
+        throw new ValidationError("16k points ought to be enough for anybody");
+    }
 
     const devices = await pool.query('SELECT id, type FROM device WHERE name = $1', [deviceName]);
     const device = devices.rows[0];

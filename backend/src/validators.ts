@@ -1,6 +1,6 @@
 import express from 'express';
 
-class ValidationError extends Error { }
+export class ValidationError extends Error { }
 
 export function validationErrorHandler(err: any, req: express.Request, res: express.Response, next: express.NextFunction) {
     if (res.headersSent || !(err instanceof ValidationError)) {
