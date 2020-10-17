@@ -3,19 +3,15 @@ import express from 'express';
 import { pool } from './db';
 import { requireInQuery, requireDateTimeInQuery, requireIntInQuery } from './validators';
 
-interface Segment {
+
+interface PartialSegment {
     start: Date,
-    end: Date,
+    end?: Date,
     points: number[]
 }
 
-function completeSegment(partial: PartialSegment, end: Date): Segment {
-    partial.end = end;
-    return partial as Segment;
-}
-
-class PartialSegment {
-    constructor(public start: Date, public end: Date | null = null, public points: number[] = []) { }
+interface Segment extends PartialSegment {
+    end: Date
 }
 
 export async function fetchSeries(req: express.Request, res: express.Response): Promise<void> {
@@ -43,7 +39,8 @@ export async function fetchSeries(req: express.Request, res: express.Response): 
     const segments: Segment[] = [];
     function handleSegmentEnd(end: Date) {
         if (currentSegment !== null) {
-            segments.push(completeSegment(currentSegment, end));
+            currentSegment.end = end;
+            segments.push(currentSegment as Segment);
             currentSegment = null;
         }
     }
@@ -53,7 +50,7 @@ export async function fetchSeries(req: express.Request, res: express.Response): 
             return;
         }
         if (currentSegment === null) {
-            currentSegment = new PartialSegment(element.bucket);
+            currentSegment = { start: element.bucket, points: [] };
         }
         currentSegment.points.push(element.value);
     });
