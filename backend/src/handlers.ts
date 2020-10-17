@@ -3,18 +3,19 @@ import express from 'express';
 import { pool } from './db';
 import { requireInQuery, requireDateTimeInQuery, requireIntInQuery } from './validators';
 
-class SegmentBuilder {
-    constructor(public start: Date, public points: number[] = []) { }
-
-    build(end: Date): Segment {
-        return {...this, end};
-    }
-}
-
 interface Segment {
     start: Date,
     end: Date,
     points: number[]
+}
+
+function completeSegment(partial: PartialSegment, end: Date): Segment {
+    partial.end = end;
+    return partial as Segment;
+}
+
+class PartialSegment {
+    constructor(public start: Date, public end: Date | null = null, public points: number[] = []) { }
 }
 
 export async function fetchSeries(req: express.Request, res: express.Response): Promise<void> {
@@ -38,11 +39,11 @@ export async function fetchSeries(req: express.Request, res: express.Response): 
         GROUP BY bucket 
         ORDER BY bucket ASC`, [start, end]);
 
-    var currentSegment: SegmentBuilder | null = null;
+    var currentSegment: PartialSegment | null = null;
     const segments: Segment[] = [];
     function handleSegmentEnd(end: Date) {
         if (currentSegment !== null) {
-            segments.push(currentSegment.build(end));
+            segments.push(completeSegment(currentSegment, end));
             currentSegment = null;
         }
     }
@@ -52,7 +53,7 @@ export async function fetchSeries(req: express.Request, res: express.Response): 
             return;
         }
         if (currentSegment === null) {
-            currentSegment = new SegmentBuilder(element.bucket);
+            currentSegment = new PartialSegment(element.bucket);
         }
         currentSegment.points.push(element.value);
     });
