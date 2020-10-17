@@ -1,6 +1,6 @@
 FROM node:current-alpine as build-app
 # only copy things needed to install dependencies in builder image
-COPY package.json tsconfig.json ./
+COPY package.json yarn.lock tsconfig.json ./
 # node-gyp (ie. node-sass) needs python for some reason
 RUN apk add --update --no-cache python make g++
 RUN npm config set python /usr/bin/python
