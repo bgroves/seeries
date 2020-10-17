@@ -1,11 +1,8 @@
 {
-  "name": "seeries-frontend",
+  "name": "@seeries/frontend",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@testing-library/jest-dom": "^4.2.4",
-    "@testing-library/react": "^9.5.0",
-    "@testing-library/user-event": "^7.2.1",
     "@visx/axis": "^1.0.0",
     "@visx/gradient": "^1.0.0",
     "@visx/grid": "^1.0.0",
@@ -23,6 +20,10 @@
     "use-resize-observer": "^6.1.0"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^4.2.4",
+    "@testing-library/react": "^9.5.0",
+    "@testing-library/user-event": "^7.2.1",
+    "@tsconfig/recommended": "^1.0.1",
     "@types/d3-array": "^2.1.0",
     "@types/d3-time-format": "^3.0.0",
     "@types/node-polyglot": "^2.4.1",
@@ -30,6 +31,7 @@
     "@typescript-eslint/eslint-plugin": "^4.4.1",
     "@typescript-eslint/parser": "^4.4.1",
     "node-sass": "^4.14.1",
+    "prettier": "2.1.1",
     "typescript": "^4.0.0"
   },
   "scripts": {
@@ -37,6 +39,10 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
+  },
+  "resolutions": {
+    "@typescript-eslint/eslint-plugin": "^4.4.1",
+    "@typescript-eslint/parser": "^4.4.1"
   },
   "eslintConfig": {
     "extends": "react-app"
