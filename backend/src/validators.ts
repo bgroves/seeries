@@ -15,7 +15,7 @@ export function requireDateTimeInQuery(req: express.Request, param: string): Dat
     return new Date(q);
 }
 
-export function requireIntInQuery(req: express.Request, param: string): Number {
+export function requireIntInQuery(req: express.Request, param: string): number {
     const q = requireInQuery(req, param);
     if (!/\d+/.test(q)) {
         throw new Error(`'${param}' must be an int, not '${q}'`);

@@ -7,7 +7,7 @@ test('Send in series', async () => {
     const resp = await axios.get('http://localhost:8000/series', {
         params: {
             start: "2020-10-01T00:00:00.000Z",
-            end: "2020-10-02T00:00:00.000Z",
+            end: "2020-10-01T00:30:00.000Z",
             device_name: "office",
             sensor: "celsius",
             aggregation: "max",
