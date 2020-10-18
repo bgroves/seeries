@@ -27,7 +27,7 @@ export function requireSetMemberInQuery<T>(req: express.Request, param: string, 
 
 export function requireDateTimeInQuery(req: express.Request, param: string): Date {
     const q = requireInQuery(req, param);
-    if (!/\d\d\d\d-\d\d-\d\dT\d\d:\d\d\:\d\d\.\d\d\dZ/.test(q)) {
+    if (!/^\d\d\d\d-\d\d-\d\dT\d\d:\d\d\:\d\d\.\d\d\dZ$/.test(q)) {
         throw new ValidationError(`'${param}' must be an date time string with full time precision and a 'Z' time zone(https://www.ecma-international.org/ecma-262/11.0/#sec-date.parse), not '${q}'`);
     }
     return new Date(q);
@@ -35,7 +35,7 @@ export function requireDateTimeInQuery(req: express.Request, param: string): Dat
 
 export function requireIntInQuery(req: express.Request, param: string): number {
     const q = requireInQuery(req, param);
-    if (!/\d+/.test(q)) {
+    if (!/^\d+$/.test(q)) {
         throw new ValidationError(`'${param}' must be an int, not '${q}'`);
     }
     return Number.parseInt(q, 10);
