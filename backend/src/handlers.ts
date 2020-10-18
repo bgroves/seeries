@@ -74,10 +74,10 @@ export async function fetchSeries(req: express.Request, res: express.Response): 
     const query = format(`SELECT time_bucket(%L, time, timestamp with time zone %L) AS bucket,
         %s(%I) AS value
         FROM %I
-        WHERE time >= $1 AND time < $2
+        WHERE time >= $1 AND time < $2 AND device_id = $3
         GROUP BY bucket
         ORDER BY bucket ASC`, `${millisPerPoint} milliseconds`, start, aggregation, sensor, device.type);
-    const results = await pool.query(query, [start, end]);
+    const results = await pool.query(query, [start, end, device.id]);
 
     var currentSegment: PartialSegment | null = null;
     const segments: Segment[] = [];
