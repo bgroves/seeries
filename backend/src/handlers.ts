@@ -53,6 +53,10 @@ export async function fetchSeries(req: express.Request, res: express.Response): 
     const aggregation = requireSetMemberInQuery(req, 'aggregation', AGGREGATION);
     const points = requireIntInQuery(req, 'points');
 
+    if (start.getTime() > end.getTime()) {
+        throw new ValidationError(`start of ${start} is after end at ${end}`);
+    }
+
     if (points > 16_384) {
         throw new ValidationError("16k points ought to be enough for anybody");
     }

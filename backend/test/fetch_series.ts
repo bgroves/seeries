@@ -162,5 +162,19 @@ test('Wrong sensor for device type', async () => {
     assert.fail("Expected request for a sensorpush device with a tempest-only sensor to raise a 400");
 });
 
+test('End before start', async () => {
+    const params = { ...baseParams };
+    params.end = params.start;
+    params.start = baseParams.end;
+    try {
+        await axios.get('http://localhost:8000/series', { params: params });
+    } catch (error: any) {
+        assert.strictEqual(error.response.status, 400);
+        assert.ok((error.response.data as string).indexOf("is after end") != -1);
+        return;
+    }
+    assert.fail("Expected request for a sensorpush device with a tempest-only sensor to raise a 400");
+});
+
 import '../src/index';
 test.run();
