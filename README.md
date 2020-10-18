@@ -11,7 +11,10 @@ The dashboard configuration specifies a few parameters for all graphs and then a
 
 Then each graph in the list has this configuration:
 * **title** - the title for the graph
-* **series** - the names of time series to fetch and display in the graph
+* **series** - the time series to fetch and display in the graph. An array of series objects containing the following fields:
+  * **device_name** - the name of the device to return readings for e.g. `inside`
+  * **sensor** - the sensor from the device to return readings for e.g. `celsius`
+  * **aggregation** - how to combine readings if there are more readings than points for the time period e.g. `MIN` or `MAX` or `AVG`
 
 The dashboard draws each graph at the width of the display in rows. The top of the dashboard has controls to select another dashboard, set the start and end, and to turn live updating off.
 
@@ -26,18 +29,18 @@ seeries' API has one endpoint, series. It takes four parameters:
 * **start** - an absolute time
 * **end** - an absolute time
 * **points** - integer number of points to return for that start and end
-* **series** - a set of series names
+* **device_name** - the name of the device to return readings for e.g. `inside`
+* **sensor** - the sensor from the device to return readings for e.g. `celsius`
+* **aggregation** - how to combine readings if there are more readings than points for the time period e.g. `MIN` or `MAX` or `AVG`
 
-It returns a JSON object with a field per series name each containing a series object. A series object has this schema:
-* **segments** - an array of segment objects each containing these fields. If the underlying series has coverage for the entire requested time, there will only be a single object in the array
-  * **start** - an absolute time
-  * **end** - an absolute time
-  * **mins** - an array of numbers of min values over that time period
-  * **maxs** - an arrary of numbers of max values over that time period
-* **points** - integer number of points the source series would use to represent the requested start and end time. If the source samples at a higher rate than the number of requested points over the given time range, this will be equal to the input points value. If it's at a lower rate, this will be at the sampling rate of the requested series
+It returns a top-level JSON array of **segment** objects each containing these fields. 
+* **start** - an absolute time
+* **end** - an absolute time
+* **values** - an array of numbers of values over that time period
 
-If any of the series don't exist, a 404 is returned with a JSON object containing the unknown series:
-* **unknown** - array of passed in series names that weren't found
+If the underlying series has coverage for the entire requested time, there will only be a single object in the array. If there are gaps, there will be a segment for each set of contiguous points.
+
+If any the device_name or sensor don't exist, a 400 is returned with a message naming the unknown value.
 
 ## Later
 Things that we will almost certainly want at some point. We're explicitly not doing them now to keep things simpler to ship something.
