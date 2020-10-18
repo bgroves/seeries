@@ -22,6 +22,18 @@ test('Fetch simple series', async () => {
     assert.strictEqual(segment.points.length, baseParams.points);
 });
 
+test('Fetch large series', async () => {
+    const params = { ...baseParams };
+    params.points = 16_384;
+    params.start = "2020-09-01T00:00:00.000Z";
+    params.end = "2020-10-01T00:00:00.000Z";
+    const resp = await axios.get('http://localhost:8000/series', { params: params });
+    const segment = resp.data[0];
+    assert.strictEqual(segment.start, params.start);
+    assert.strictEqual(segment.end, params.end);
+    assert.strictEqual(segment.points.length, params.points);
+});
+
 test('Leave out params', async () => {
     const params: { [key: string]: any } = { ...baseParams };
     delete params['start'];

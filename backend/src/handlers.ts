@@ -69,12 +69,14 @@ export async function fetchSeries(req: express.Request, res: express.Response): 
     const millis = end.getTime() - start.getTime();
     const millisPerPoint = millis / points;
 
-    const query = format(`SELECT time_bucket_gapfill(%L, time) AS bucket,
+    // Select bucketed by the number of milliseconds between points necessary to fill this time interval. 
+    // Pass in the start as an origin to time_bucket as we want to align the buckets on the start time.
+    const query = format(`SELECT time_bucket(%L, time, timestamp with time zone %L) AS bucket,
         %s(%I) AS value
         FROM %I
         WHERE time >= $1 AND time < $2
         GROUP BY bucket
-        ORDER BY bucket ASC`, `${millisPerPoint} milliseconds`, aggregation, sensor, device.type);
+        ORDER BY bucket ASC`, `${millisPerPoint} milliseconds`, start, aggregation, sensor, device.type);
     const results = await pool.query(query, [start, end]);
 
     var currentSegment: PartialSegment | null = null;
@@ -86,16 +88,25 @@ export async function fetchSeries(req: express.Request, res: express.Response): 
             currentSegment = null;
         }
     }
-    results.rows.forEach(element => {
-        if (element.value === null) {
-            handleSegmentEnd(element.bucket);
-            return;
+    results.rows.forEach((element, idx) => {
+        if (currentSegment !== null) {
+            const previousPointBucket = results.rows[idx - 1].bucket.getTime();
+            if (element.bucket.getTime() - previousPointBucket >= millisPerPoint + 1) {
+                handleSegmentEnd(new Date(previousPointBucket + millisPerPoint));
+            }
         }
         if (currentSegment === null) {
             currentSegment = { start: element.bucket, points: [] };
         }
         currentSegment.points.push(element.value);
     });
-    handleSegmentEnd(end);
+    if (currentSegment !== null) {
+        const finalBucketTime = results.rows[results.rows.length - 1].bucket.getTime();
+        if (Math.abs(finalBucketTime - end.getTime()) === Math.ceil(millisPerPoint)) {
+            handleSegmentEnd(end);
+        } else {
+            handleSegmentEnd(new Date(finalBucketTime + millisPerPoint));
+        }
+    }
     res.send(segments);
 }
