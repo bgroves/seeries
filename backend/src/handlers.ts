@@ -2,7 +2,7 @@ import express from 'express';
 import format from 'pg-format';
 
 import { pool } from './db';
-import { requireInQuery, requireDateTimeInQuery, requireEnumInQuery, requireIntInQuery, ValidationError } from './validators';
+import { requireInQuery, requireDateTimeInQuery, requireIntInQuery, requireSetMemberInQuery, ValidationError } from './validators';
 
 
 interface PartialSegment {
@@ -16,48 +16,41 @@ interface Segment extends PartialSegment {
 }
 
 // Accepted values for the aggregation query param
-enum Aggregation {
-    MAX = 'MAX',
-    MIN = 'MIN',
-    AVG = 'AVG'
-}
+const AGGREGATION = new Set(['MAX', 'MIN', 'AVG']);
 
 // Accepted values for the sensor query param if the device_name points to a sensorpush device
-enum SensorPushSensors {
-    celsius = 'celsius',
-    relative_humidity = 'relative_humidity'
-}
+const SENSOR_PUSH_SENSORS = new Set(['celsius', 'relative_humidity']);
 
 // Accepted values for the sensor query param if the device_name points to a tempest device
-enum TempestSensors {
-    wind_lull = 'wind_lull',
-    wind_avg = 'wind_avg',
-    wind_gust = 'wind_gust',
-    wind_direction = 'wind_direction',
-    wind_sample_interval = 'wind_sample_interval',
-    pressure = 'pressure',
-    celsius = 'celsius',
-    relative_humidity = 'relative_humidity',
-    illuminance = 'illuminance',
-    uv = 'uv',
-    solar_radiation = 'solar_radiation',
-    rain_accumulation = 'rain_accumulation',
-    precipitation_type = 'precipitation_type',
-    average_strike_distance = 'average_strike_distance',
-    strike_count = 'strike_count',
-    battery = 'battery',
-    report_interval = 'report_interval',
-    local_day_rain_accumulation = 'local_day_rain_accumulation',
-    rain_accumulation_final = 'rain_accumulation_final',
-    local_day_rain_accumulation_final = 'local_day_rain_accumulation_final',
-    precipitation_analysis_type = 'precipitation_analysis_type'
-}
+const TEMPEST_SENSORS = new Set([
+    'wind_lull',
+    'wind_avg',
+    'wind_gust',
+    'wind_direction',
+    'wind_sample_interval',
+    'pressure',
+    'celsius',
+    'relative_humidity',
+    'illuminance',
+    'uv',
+    'solar_radiation',
+    'rain_accumulation',
+    'precipitation_type',
+    'average_strike_distance',
+    'strike_count',
+    'battery',
+    'report_interval',
+    'local_day_rain_accumulation',
+    'rain_accumulation_final',
+    'local_day_rain_accumulation_final',
+    'precipitation_analysis_type'
+]);
 
 export async function fetchSeries(req: express.Request, res: express.Response): Promise<void> {
     const start = requireDateTimeInQuery(req, 'start');
     const end = requireDateTimeInQuery(req, 'end');
     const deviceName = requireInQuery(req, 'device_name');
-    const aggregation = requireEnumInQuery(req, Aggregation, 'aggregation');
+    const aggregation = requireSetMemberInQuery(req, 'aggregation', AGGREGATION);
     const points = requireIntInQuery(req, 'points');
 
     if (points > 16_384) {
@@ -70,8 +63,8 @@ export async function fetchSeries(req: express.Request, res: express.Response): 
     }
     const device = devices.rows[0];
 
-    const deviceSensors: object = device.type === 'sensorpush' ? SensorPushSensors : TempestSensors;
-    const sensor: string = requireEnumInQuery(req, deviceSensors, 'sensor');
+    const deviceSensors = device.type === 'sensorpush' ? SENSOR_PUSH_SENSORS : TEMPEST_SENSORS;
+    const sensor: string = requireSetMemberInQuery(req, 'sensor', deviceSensors);
 
     const millis = end.getTime() - start.getTime();
     const millisPerPoint = millis / points;

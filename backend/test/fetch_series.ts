@@ -57,7 +57,7 @@ test('Unknown aggregation', async () => {
         assert.ok((error.response.data as string).indexOf("AVG") != -1);
         return;
     }
-    assert.fail("Expected request with lots of points to raise a 400");
+    assert.fail("Expected unknown aggregation to raise a 400");
 });
 
 test('Unknown device', async () => {
@@ -70,7 +70,7 @@ test('Unknown device', async () => {
         assert.ok((error.response.data as string).indexOf("DROP TABLES") != -1);
         return;
     }
-    assert.fail("Expected request with lots of points to raise a 400");
+    assert.fail("Expected unknown device_name to raise a 400");
 });
 
 test('Wrong sensor for device type', async () => {

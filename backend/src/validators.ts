@@ -17,13 +17,12 @@ export function requireInQuery(req: express.Request, param: string): string {
     return req.query[param] as string;
 }
 
-export function requireEnumInQuery<T>(req: express.Request, enumType: object, param: string): string {
+export function requireSetMemberInQuery<T>(req: express.Request, param: string, possibilities: Set<string>): string {
     const q = requireInQuery(req, param);
-    const found = Object.keys(enumType).find((el) => el === q);
-    if (found === undefined) {
-        throw new ValidationError(`${param} must be one of ${Object.keys(enumType)}. Got '${q}'`);
+    if (!possibilities.has(q)) {
+        throw new ValidationError(`${param} must be one of ${[...possibilities]}. Got '${q}'`);
     }
-    return found;
+    return q;
 }
 
 export function requireDateTimeInQuery(req: express.Request, param: string): Date {
