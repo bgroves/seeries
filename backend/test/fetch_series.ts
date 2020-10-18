@@ -176,5 +176,8 @@ test('End before start', async () => {
     assert.fail("Expected request for a sensorpush device with a tempest-only sensor to raise a 400");
 });
 
-import '../src/index';
-test.run();
+import { server } from '../src/index';
+test.after(() => { server.close() });
+test.run()
+
+
