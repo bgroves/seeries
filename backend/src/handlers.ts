@@ -1,4 +1,5 @@
 import express from 'express';
+import format from 'pg-format';
 
 import { pool } from './db';
 import { requireInQuery, requireDateTimeInQuery, requireEnumInQuery, requireIntInQuery, ValidationError } from './validators';
@@ -69,19 +70,19 @@ export async function fetchSeries(req: express.Request, res: express.Response): 
     }
     const device = devices.rows[0];
 
-    const deviceSensors :object = device.type === 'sensorpush' ? SensorPushSensors : TempestSensors;
-    const sensor :string = requireEnumInQuery(req, deviceSensors, 'sensor');
+    const deviceSensors: object = device.type === 'sensorpush' ? SensorPushSensors : TempestSensors;
+    const sensor: string = requireEnumInQuery(req, deviceSensors, 'sensor');
 
     const millis = end.getTime() - start.getTime();
     const millisPerPoint = millis / points;
 
-    // Use pg_literal for types
-    const results = await pool.query(`SELECT time_bucket_gapfill('${millisPerPoint} milliseconds', time) AS bucket, 
-        ${aggregation}(${sensor}) AS value 
-        FROM ${device.type} 
-        WHERE time >= $1 AND time < $2 
-        GROUP BY bucket 
-        ORDER BY bucket ASC`, [start, end]);
+    const query = format(`SELECT time_bucket_gapfill(%L, time) AS bucket,
+        %s(%I) AS value
+        FROM %I
+        WHERE time >= $1 AND time < $2
+        GROUP BY bucket
+        ORDER BY bucket ASC`, `${millisPerPoint} milliseconds`, aggregation, sensor, device.type);
+    const results = await pool.query(query, [start, end]);
 
     var currentSegment: PartialSegment | null = null;
     const segments: Segment[] = [];

@@ -86,7 +86,5 @@ test('Wrong sensor for device type', async () => {
     assert.fail("Expected request for a sensorpush device with a tempest-only sensor to raise a 400");
 });
 
-// Add tests of little data, lots of data, gappy data
-
 import '../src/index';
 test.run();
