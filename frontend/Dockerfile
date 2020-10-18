@@ -1,4 +1,4 @@
-FROM node:current-alpine as build-app
+FROM node:12.19-alpine as build-app
 # only copy things needed to install dependencies in builder image
 COPY package.json yarn.lock tsconfig.json ./
 # node-gyp (ie. node-sass) needs python for some reason
