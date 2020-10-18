@@ -60,5 +60,33 @@ test('Unknown aggregation', async () => {
     assert.fail("Expected request with lots of points to raise a 400");
 });
 
+test('Unknown device', async () => {
+    const params = { ...baseParams };
+    params.device_name = "; DROP TABLES;";
+    try {
+        await axios.get('http://localhost:8000/series', { params: params });
+    } catch (error: any) {
+        assert.strictEqual(error.response.status, 400);
+        assert.ok((error.response.data as string).indexOf("DROP TABLES") != -1);
+        return;
+    }
+    assert.fail("Expected request with lots of points to raise a 400");
+});
+
+test('Wrong sensor for device type', async () => {
+    const params = { ...baseParams };
+    params.sensor = "; DROP TABLES;";
+    try {
+        await axios.get('http://localhost:8000/series', { params: params });
+    } catch (error: any) {
+        assert.strictEqual(error.response.status, 400);
+        assert.ok((error.response.data as string).indexOf("DROP TABLES") != -1);
+        return;
+    }
+    assert.fail("Expected request for a sensorpush device with a tempest-only sensor to raise a 400");
+});
+
+// Add tests of little data, lots of data, gappy data
+
 import '../src/index';
 test.run();
