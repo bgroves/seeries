@@ -3,9 +3,9 @@ import React from 'react';
 import AllDashboardsPage from './dashboard/all-dashboards-page';
 import { getAllDashboards, getDashboard } from './dashboard/dashboard-api';
 import DashboardDetailPage from './dashboard/dashboard-detail-page';
-import GraphSeries from './graph/graph-series';
+import GraphViewModel from './graph/graph-view-model';
 import labels from './labels';
-import { getSeries } from './series/series-api';
+import { fetchAllSeries } from './series/series-api';
 
 const appRoutes = mount({
   '/': redirect('/dashboards'),
@@ -23,16 +23,13 @@ const appRoutes = mount({
   '/dashboards/:name': route(async (req) => {
     const name = req.params.name;
     const allDashboards = await getAllDashboards();
-    const dashboard = await getDashboard(name);
-    const series = await getSeries(
-      dashboard.start,
-      dashboard.end,
-      dashboard.points,
-      dashboard.requiredSeries
+    const dashboard = await getDashboard(name, req.params);
+    const series = fetchAllSeries(dashboard, dashboard.requiredSeries);
+    const graphs = await Promise.all(
+      dashboard.graphs.map((it) => {
+        return GraphViewModel.create(dashboard, it, series);
+      })
     );
-    const graphs = dashboard.graphs.map((it) => {
-      return GraphSeries.create(dashboard, it, series);
-    });
 
     return {
       title: labels('dashboardDetailPageTitle', { title: dashboard.title }),

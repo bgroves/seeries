@@ -1,75 +1,93 @@
-import { GraphWindow } from '../graph/graph-window';
-import DashboardGraph, { DashboardGraphJSON } from './dashboard-graph';
+import GraphWindow from '../graph/graph-window';
+import DashboardGraph from './dashboard-graph';
+import SeriesID from '../series/series-id';
+import {
+  isDatelike,
+  isIntegerParseable,
+  isNonEmptyString,
+} from '../validation';
 
 export interface DashboardMap {
   [key: string]: Dashboard;
 }
 
-interface DashboardJSON {
-  name: string;
-  title: string;
-  start: number | string | Date;
-  end: number | string | Date;
-  points: number;
-  live: boolean;
-  graphs: DashboardGraphJSON[];
-}
-
 class Dashboard implements GraphWindow {
-  name: string;
-  title: string;
-  start: Date;
-  end: Date;
-  points: number;
-  live: boolean;
-  graphs: DashboardGraph[];
-
   constructor(
-    name: string,
-    title: string,
-    start: Date,
-    end: Date,
-    points: number,
-    live: boolean,
-    graphs: DashboardGraph[]
-  ) {
-    this.name = name;
-    this.title = title;
-    this.start = start;
-    this.end = end;
-    this.points = points;
-    this.live = live;
-    this.graphs = graphs;
+    public name: string,
+    public title: string,
+    public start: Date,
+    public end: Date,
+    public points: number,
+    public live: boolean,
+    public graphs: DashboardGraph[]
+  ) {}
+
+  get pointScale(): number {
+    return this.points;
   }
 
-  get requiredSeries(): string[] {
-    const byName: { [key: string]: boolean } = {};
+  get requiredSeries(): SeriesID[] {
+    const byName: { [key: string]: SeriesID } = {};
 
     for (let i = 0; i < this.graphs.length; i++) {
       const graph = this.graphs[i];
       for (let j = 0; j < graph.series.length; j++) {
-        byName[graph.series[j]] = true;
+        const id = graph.series[j];
+        byName[id.hashKey()] = id;
       }
     }
-    return Object.keys(byName);
+    return Object.values(byName);
   }
 
-  static fromJSON(json: DashboardJSON | string): Dashboard {
-    if (typeof json === 'string') {
-      return JSON.parse(json, Dashboard.reviver);
-    } else {
-      const graph = Object.create(Dashboard.prototype);
-      return Object.assign(graph, json, {
-        start: new Date(json.start),
-        end: new Date(json.end),
-        graphs: json.graphs.map(DashboardGraph.fromJSON),
-      });
+  withParams(params: any): Dashboard {
+    const result = this.clone();
+    const start = params.start;
+    if (isDatelike(start)) {
+      result.start = new Date(start);
     }
+    const end = params.end;
+    if (isDatelike(end)) {
+      result.end = new Date(end);
+    }
+    const points = params.points;
+    if (isIntegerParseable(points)) {
+      result.points = parseInt(points);
+    }
+    const live = params.live;
+    if (isNonEmptyString(live)) {
+      result.live = live.toLowerCase().indexOf('t') >= 0;
+    }
+    return result;
   }
 
-  static reviver(key: string, value: any): any {
-    return key === '' ? Dashboard.fromJSON(value) : value;
+  clone(): Dashboard {
+    return new Dashboard(
+      this.name,
+      this.title,
+      this.start,
+      this.end,
+      this.points,
+      this.live,
+      this.graphs
+    );
   }
+
+  // static fromJSON(json: DashboardJSON | string): Dashboard {
+  //   if (typeof json === 'string') {
+  //     return JSON.parse(json, Dashboard.reviver);
+  //   } else {
+  //     const graph = Object.create(Dashboard.prototype);
+  //     return Object.assign(graph, json, {
+  //       start: new Date(json.start),
+  //       end: new Date(json.end),
+  //       graphs: json.graphs.map(DashboardGraph.fromJSON),
+  //     });
+  //   }
+  // }
+
+  // static reviver(key: string, value: any): any {
+  //   return key === '' ? Dashboard.fromJSON(value) : value;
+  // }
 }
 
 export default Dashboard;

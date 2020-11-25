@@ -4,7 +4,10 @@ export default class MinMax implements GraphScale {
   private _min: number;
   private _max: number;
 
-  constructor(min = Number.MAX_VALUE, max = Number.MIN_VALUE) {
+  constructor({
+    min = Number.MAX_VALUE,
+    max = Number.MIN_VALUE,
+  }: { min?: number; max?: number } = {}) {
     this._min = min;
     this._max = max;
   }

@@ -1,5 +1,15 @@
-import Series, { SeriesMap } from './series';
+import Series from './series';
+import SeriesID from './series-id';
 import SeriesSegment from './series-segment';
+import SeriesMap from './series-map';
+
+const officeIds = {
+  avgTemp: new SeriesID('office', 'celsius', 'AVG'),
+};
+
+const atticIds = {
+  avgTemp: new SeriesID('attic', 'celsius', 'AVG'),
+};
 
 function generateData(
   start: number,
@@ -22,7 +32,7 @@ function generateData(
 }
 
 function generateSeries(
-  name: string,
+  id: SeriesID,
   start: Date,
   end: Date,
   segments = 2,
@@ -48,23 +58,44 @@ function generateSeries(
   let segmentEnd = new Date(start.getTime() + timeStep);
   while (i < segments) {
     segs.push(
-      SeriesSegment.create({
-        start: segmentStart,
-        end: segmentEnd,
-        values: values.slice(i * points, (i + 1) * points),
-      })
+      SeriesSegment.create(
+        {
+          start: segmentStart,
+          end: segmentEnd,
+          points: values.slice(i * points, (i + 1) * points),
+        },
+        points
+      )
     );
     segmentStart = segmentEnd;
     segmentEnd = new Date(segmentEnd.getTime() + timeStep);
     i++;
   }
-  return new Series(name, segs, segments * points);
+  return new Series(id, points, segs);
 }
 
-const seriesByName: SeriesMap = {
-  a: generateSeries('a', new Date(2020, 9, 1), new Date(2020, 9, 2)),
-  b: generateSeries('b', new Date(2020, 9, 1), new Date(2020, 9, 2)),
-  c: generateSeries('c', new Date(2020, 9, 1), new Date(2020, 9, 2)),
-};
+function genSeries(map: SeriesMap, id: SeriesID, start: Date, end: Date): void {
+  map.put(id, Promise.resolve(generateSeries(id, start, end)));
+}
+
+const seriesByName = new SeriesMap();
+genSeries(
+  seriesByName,
+  officeIds['avgTemp'],
+  new Date(2020, 9, 1),
+  new Date(2020, 9, 2)
+);
+genSeries(
+  seriesByName,
+  officeIds['avgTemp'],
+  new Date(2020, 9, 1),
+  new Date(2020, 9, 2)
+);
+genSeries(
+  seriesByName,
+  atticIds['avgTemp'],
+  new Date(2020, 9, 1),
+  new Date(2020, 9, 2)
+);
 
 export { seriesByName };

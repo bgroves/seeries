@@ -1,5 +1,20 @@
 {
     "python.formatting.provider": "black",
-    "python.pythonPath": ".direnv/python-3.8.6/bin/python",
-    "python.linting.enabled": true
+    "python.pythonPath": "/usr/local/bin/python3",
+    "python.linting.enabled": true,
+    "files.watcherExclude": {
+        "bootstrap/**": true
+    },
+    "search.exclude": {
+        "bootstrap/**": true
+    },
+    "python.linting.ignorePatterns": [
+        ".vscode/*.py",
+        "**/site-packages/**/*.py",
+        "bootstrap/**"
+    ],
+    "python.workspaceSymbols.exclusionPatterns": [
+        "**/site-packages/**",
+        "bootstrap/**"
+    ]
 }

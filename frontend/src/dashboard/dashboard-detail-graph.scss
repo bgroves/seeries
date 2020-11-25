@@ -4,10 +4,53 @@
   margin-bottom: 1rem;
 }
 
-.dark svg {
-  background-color: $dark-bg-color;
-  color: $dark-fg-color;
+.graph-area-chart {
+  border-radius: 14px;
+}
+
+@mixin graph-area-chart-variant($fg-color, $bg-color, $bg-color2) {
+  color: $fg-color;
+  background: linear-gradient(0deg, $bg-color, $bg-color2);
+
   path {
-    color: $dark-fg-color;
+    color: $fg-color;
   }
+
+  .graph-area-chart-row,
+  .graph-area-chart-col {
+    .visx-line {
+      stroke: $fg-color;
+    }
+  }
+
+  .graph-area-chart-tick {
+    text {
+      fill: $fg-color;
+    }
+  }
+
+  .visx-axis-line,
+  .visx-axis-tick .visx-line {
+    stroke: $fg-color;
+  }
+
+  .graph-chart-line {
+    stroke: $fg-color;
+  }
+}
+
+.page-light .graph-area-chart {
+  @include graph-area-chart-variant(
+    $light-fg-color,
+    $light-bg-color,
+    $light-bg-color2
+  );
+}
+
+.page-dark .graph-area-chart {
+  @include graph-area-chart-variant(
+    $dark-fg-color,
+    $dark-bg-color,
+    $dark-bg-color2
+  );
 }

@@ -1,6 +1,7 @@
-export interface GraphWindow {
+export default interface GraphWindow {
   start: Date;
   end: Date;
+  pointScale: number;
 }
 
 export function intersects(a: GraphWindow, b: GraphWindow): boolean {

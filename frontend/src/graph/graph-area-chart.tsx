@@ -1,199 +1,120 @@
-import { AxisBottom, AxisLeft } from '@visx/axis';
-import { curveMonotoneX } from '@visx/curve';
-import { LinearGradient } from '@visx/gradient';
+import { RectClipPath } from '@visx/clip-path';
 import { GridColumns, GridRows } from '@visx/grid';
 import { scaleLinear, scaleTime } from '@visx/scale';
-import { LinePath } from '@visx/shape';
-import { timeFormat } from 'd3-time-format';
 import React, { useMemo } from 'react';
-import SeriesPoint from '../series/series-point';
+import GraphAxisHorizontal from './graph-axis-horizontal';
+import GraphAxisVertical from './graph-axis-vertical';
+import GraphChartLine from './graph-chart-line';
+import GraphPoint from './graph-point';
+import { GraphScale } from './graph-scale';
 import GraphSeries from './graph-series';
+import GraphWindow from './graph-window';
 
-export const background = '#3b6978';
-export const background2 = '#204051';
-export const accentColor = '#edffea';
-export const accentColorDark = '#75daad';
-const axisColor = '#fff';
-const tickLabelColor = '#fff';
-
-const tickLabelProps = () =>
-  ({
-    fill: tickLabelColor,
-    fontSize: 12,
-    fontFamily: 'sans-serif',
-    textAnchor: 'end',
-    dx: '.25rem',
-    dy: '-.25rem',
-    angle: -90,
-  } as const);
-
-const yTickLabelProps = () =>
-  ({
-    fill: tickLabelColor,
-    dx: '-0.5rem',
-    dy: '0.25rem',
-    fontSize: 12,
-    fontFamily: 'sans-serif',
-    textAnchor: 'end',
-  } as const);
-
-type Tick = number | Date | { valueOf(): number };
-
-const tickFormat = (value: Tick): string => {
-  if (value instanceof Date) {
-    return timeFormat('%m/%d %H:%M')(value);
-  }
-  return '';
-};
-
-const yFormat = (value: Tick): string => {
-  if (value instanceof Number) {
-    return value.toFixed(2);
-  } else if (value.valueOf != null) {
-    return value.valueOf().toFixed(0);
-  }
-  return '';
-};
+export type Tick = number | Date | { valueOf(): number };
 
 // accessors
-function getDate(d: SeriesPoint): Date {
+function getDate(d: GraphPoint): Date {
   return d.time;
 }
 
-function getValue(d: SeriesPoint): number {
+function getValue(d: GraphPoint): number {
   return d.value;
 }
 
 export type AreaProps = {
-  data: GraphSeries;
+  series: GraphSeries[];
+  window: GraphWindow;
+  scale: GraphScale;
   height: number;
   width: number;
+  baseId: string;
   margin?: { top: number; right: number; bottom: number; left: number };
 };
 
 export default function GraphAreaChart({
-  data,
+  series,
+  window,
+  scale,
   width,
   height,
+  baseId,
   margin = { top: 20, right: 20, bottom: 100, left: 60 },
 }: AreaProps) {
   // bounds
   const xMax = width - margin.left - margin.right;
   const yMax = height - margin.top - margin.bottom;
 
-  const dashboardWindow = {
-    start: data.start,
-    end: data.end,
-  };
-
-  const graphScaleWindow = {
-    min: data.min,
-    max: data.max,
-  };
-
   // scales
   const xScale = useMemo(
     () =>
       scaleTime({
         range: [0, xMax],
-        domain: [dashboardWindow.start, dashboardWindow.end],
+        domain: [window.start, window.end],
       }),
-    [dashboardWindow, xMax]
+    [window, xMax]
   );
 
   const yScale = useMemo(
     () =>
       scaleLinear({
         range: [yMax, 0],
-        domain: [graphScaleWindow.min, graphScaleWindow.max],
+        domain: [scale.min, scale.max],
         nice: true,
       }),
-    [graphScaleWindow, yMax]
+    [scale, yMax]
   );
 
   // This must come after any react hooks calls like useMemo
-  if (width < 10) return null;
+  if (xMax < 10 || yMax < 10) return null;
 
-  function getX(d: SeriesPoint): number {
+  function getX(d: GraphPoint): number {
     const n = xScale(getDate(d));
     return n == null ? 0 : n;
   }
 
-  function getY(d: SeriesPoint): number {
+  function getY(d: GraphPoint): number {
     const n = yScale(getValue(d));
     return n == null ? 0 : n;
   }
 
+  const clipId = baseId + '_clip-path';
+
   return (
-    <svg width={width} height={height}>
-      <rect
-        x={0}
-        y={0}
-        width={width}
-        height={height}
-        fill="url(#area-background-gradient)"
-        rx={14}
-      />
+    <svg className="graph-area-chart" width={width} height={height}>
+      <RectClipPath id={clipId} height={yMax} width={xMax} />
       <g transform={`translate(${margin.left},${margin.top})`}>
-        <LinearGradient
-          id="area-background-gradient"
-          from={background}
-          to={background2}
-        />
-        <LinearGradient
-          id="area-gradient"
-          from={accentColor}
-          to={accentColor}
-          toOpacity={0.1}
-        />
         <GridRows
+          className="graph-area-chart-row"
           scale={yScale}
           width={xMax}
           strokeDasharray="3,3"
-          stroke={accentColor}
           strokeOpacity={0.3}
           pointerEvents="none"
         />
         <GridColumns
+          className="graph-area-chart-col"
           scale={xScale}
           height={yMax}
           strokeDasharray="3,3"
-          stroke={accentColor}
           strokeOpacity={0.3}
           pointerEvents="none"
         />
 
-        {data.series.map((series) => {
-          return series.segments.map((segment, i) => {
+        {series.map((series, seriesIndex) => {
+          return series.chunks.map((chunk, chunkIndex) => {
             return (
-              <LinePath<SeriesPoint>
-                key={'segment_' + i}
-                data={segment.points}
-                x={getX}
-                y={getY}
-                stroke="#fff"
-                strokeWidth={1}
-                curve={curveMonotoneX}
+              <GraphChartLine
+                key={'series_' + seriesIndex + '_chunk_' + chunkIndex}
+                clipId={clipId}
+                chunk={chunk}
+                getX={getX}
+                getY={getY}
               />
             );
           });
         })}
-        <AxisLeft
-          scale={yScale}
-          tickFormat={yFormat}
-          stroke={axisColor}
-          tickStroke={axisColor}
-          tickLabelProps={yTickLabelProps}
-        />
-
-        <AxisBottom
-          top={yMax}
-          scale={xScale}
-          tickFormat={tickFormat}
-          stroke={axisColor}
-          tickStroke={axisColor}
-          tickLabelProps={tickLabelProps}
-        />
+        <GraphAxisVertical scale={yScale} />
+        <GraphAxisHorizontal scale={xScale} top={yMax} />
       </g>
     </svg>
   );

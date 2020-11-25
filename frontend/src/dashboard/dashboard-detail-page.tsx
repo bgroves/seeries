@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAppTheme } from '../app-theme';
-import GraphSeries from '../graph/graph-series';
+import GraphViewModel from '../graph/graph-view-model';
 import Page from '../layout/page';
 import Dashboard from './dashboard';
 import DashboardDetail from './dashboard-detail';
@@ -8,7 +8,7 @@ import DashboardDetail from './dashboard-detail';
 export interface DashboardDetailPageProps {
   allDashboards: Dashboard[];
   dashboard: Dashboard;
-  graphs: GraphSeries[];
+  graphs: GraphViewModel[];
 }
 
 function DashboardDetailPage({
