@@ -25,6 +25,9 @@
   },
   "scripts": {
     "build": "tsc --project ./",
-    "dev": "ts-node-dev --transpile-only -- src/index.ts "
+    "dev": "ts-node-dev --transpile-only -- src/index.ts",
+    "start": "node build/src/index.js",
+    "test": "node build/test/fetch_series.js",
+    "test-dev": "ts-node-dev --respawn --transpile-only -- test/fetch_series.ts"
   }
 }
