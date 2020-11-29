@@ -1,4 +1,5 @@
 .direnv
+.env
 build
 node_modules
 yarn-error.log
