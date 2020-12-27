@@ -3,6 +3,7 @@ import assert from 'assert';
 import nock from 'nock';
 
 import {createAuthorizer} from '../src/ingester'
+import { AxiosError } from 'axios';
 
 const test = baretest('ingester');
 
@@ -28,6 +29,15 @@ test('Working auth', async () => {
     assert.strictEqual(AUTHORIZED_ACCESS_TOKEN, auth);
 });
 
+
+function isAxiosError(error: unknown): error is AxiosError {
+    return (error as AxiosError).isAxiosError !== undefined;
+}
+
+function isMessage(data: unknown): data is {message: string} {
+    return (data as {message: string}).message !== undefined;
+}
+
 test('Wrong email', async () => {
     const badEmail = "not_real_user@example.com";
     nock('https://api.sensorpush.com')
@@ -36,14 +46,20 @@ test('Wrong email', async () => {
     const authorizer = createAuthorizer(badEmail, ACCEPTED_PASSWORD);
     try {
         await authorizer();
-    } catch (error: any) {
-        assert.strictEqual(error.response.status, 403);
-        assert.strictEqual(error.response.data.message, "invalid user");
-        return;
+    } catch (error) {
+        if (isAxiosError(error)) {
+            assert.strictEqual(error.response?.status, 403);
+            if (isMessage(error.response?.data)) {
+                assert.strictEqual(error.response.data.message, "invalid user");
+                return;
+            }
+        }
+        throw error;
+        
     }
     assert.fail("Expected request without start to raise a 403")
 });
 
-test.run()
+void test.run()
 
 

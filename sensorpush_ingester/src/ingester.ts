@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosError, AxiosResponse } from 'axios';
 
 import {rootLogger} from './logger';
 
@@ -10,6 +10,18 @@ interface Authorizer {
     (reauthorize?: boolean): Promise<string>;
 }
 
+function isAxiosError(error: unknown): error is AxiosError {
+    return (error as AxiosError).isAxiosError !== undefined;
+}
+
+interface AuthorizationResponse {
+    authorization: string,
+}
+
+
+function isMessage(data: unknown): data is {message: string|undefined} {
+    return (data as {message: string}).message !== undefined;
+}
 class AuthorizationFetcher {
     authorizing = false;
     authorization :Promise<string>;
@@ -19,17 +31,20 @@ class AuthorizationFetcher {
     }
 
     async fetchAuthorizationToken() {
-        let resp;
-        for(;;) {
+        let resp :AxiosResponse<AuthorizationResponse> | undefined;
+        while (resp === undefined) {
             try {
                 resp = await client.post("/oauth/authorize", {"email": this.email, "password": this.password});
-                break;
             } catch (error) {
-                if (error.response) {
-                    if (error.response.status === 403) {
-                        logger.warn("Got 403 auth error with this data: %O", error.response.data);
-                        throw error;
+                if (!isAxiosError(error)) {
+                    throw error;
+                }
+                if (error.response?.status === 403) {
+                    logger.warn("Got 403 auth error with this data: %O", error.response.data);
+                    if (isMessage(error.response.data)) {
+                    error.response.data.message = undefined;
                     }
+                    throw error;
                 }
             }
         }
@@ -42,7 +57,7 @@ class AuthorizationFetcher {
         }
         this.authorizing = true;
         const authorizationToken = await this.fetchAuthorizationToken();
-        const access = await client.post("/oauth/accesstoken", {"authorization": authorizationToken});
+        const access :AxiosResponse<{accesstoken: string}> = await client.post("/oauth/accesstoken", {"authorization": authorizationToken});
         const accessToken = access.data.accesstoken;       
         if (accessToken === null) {
             throw new Error("SensorPush returned a null access token, the dickenses");
@@ -72,20 +87,27 @@ interface Samples {
     samples: Sample[]
 }
 
+interface SamplesData {
+    total_samples: number,
+    last_time: string,
+    sensors: {[id: string]: Sample[]},
+}
+
 async function* backfiller(id: string, authorizer: Authorizer): AsyncGenerator<Samples, void, void> {
     logger.info("Fetching %d", id);
-    var nextStartTime = "";
+    let nextStartTime = "";
     while (true) {
-        const samples = await client.post("/samples", {"startTime": nextStartTime, "limit":1_000, "sensors": [id]}, {headers:{"Authorization": await authorizer()}});
-        logger.debug("HTTP Status %d", samples.status);
-        if (samples.data.total_samples === 0) {
+        const resp :AxiosResponse<SamplesData> = await client.post("/samples", {"startTime": nextStartTime, "limit":1_000, "sensors": [id]}, {headers:{"Authorization": await authorizer()}});
+        logger.debug("HTTP Status %d", resp.status);
+        const data = resp.data;
+        if (data.total_samples === 0) {
             return;
         }
-        if (!/^\d\d\d\d-\d\d-\d\dT\d\d:\d\d\:\d\d\.\d\d\dZ$/.test(samples.data.last_time)) {
-            throw new Error(`'last_time' must be an date time string with full time precision and a 'Z' time zone(https://www.ecma-international.org/ecma-262/11.0/#sec-date.parse), not '${samples.data.last_time}'`);
+        if (!/^\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d\.\d\d\dZ$/.test(data.last_time)) {
+            throw new Error(`'last_time' must be an date time string with full time precision and a 'Z' time zone(https://www.ecma-international.org/ecma-262/11.0/#sec-date.parse), not '${data.last_time}'`);
         }
-        const lastTime = new Date(samples.data.last_time);
-        yield {id: id, samples: samples.data.sensors[id]};
+        const lastTime = new Date(data.last_time);
+        yield {id: id, samples: data.sensors[id]};
         
         nextStartTime = new Date(lastTime.getTime() + 1_000).toISOString();
     }
@@ -93,7 +115,7 @@ async function* backfiller(id: string, authorizer: Authorizer): AsyncGenerator<S
 
 export async function* ingest(email: string, password: string): AsyncGenerator<Samples, void, void> {
     const authorizer = createAuthorizer(email, password);
-    const sensors = await client.post('/devices/sensors', {'active':true}, {headers:{"Authorization": await authorizer()}});
+    const sensors :AxiosResponse<{[id: string]: Sensor}> = await client.post('/devices/sensors', {'active':true}, {headers:{"Authorization": await authorizer()}});
 
     // Would be great to run these backfills in parallel. A quick test with 6 sensors shows it taking 7 seconds in parallel as opposed 
     // to 28 doing it serially as it is now. 
@@ -107,7 +129,7 @@ export async function* ingest(email: string, password: string): AsyncGenerator<S
     // Continue racing and yielding till the Promise array is empty.
     // 
     // Yuck.
-    for (const sensor of (Object.values(sensors.data) as Sensor[])) {
+    for (const sensor of Object.values(sensors.data)) {
         yield *backfiller(sensor.id, authorizer);
     }
 }
