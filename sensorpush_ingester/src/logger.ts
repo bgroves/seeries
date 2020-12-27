@@ -1,3 +1,3 @@
-import pino from 'pino';
+import pino from "pino";
 
-export const rootLogger = pino({name: "sensorpush_ingester"});
+export const rootLogger = pino({ name: "sensorpush_ingester" });
