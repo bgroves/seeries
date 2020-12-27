@@ -11,7 +11,7 @@ interface Authorizer {
 }
 
 class AuthorizationFetcher {
-    authorizing :boolean = false;
+    authorizing = false;
     authorization :Promise<string>;
 
     constructor(private email: string, private password: string) {
@@ -19,8 +19,8 @@ class AuthorizationFetcher {
     }
 
     async fetchAuthorizationToken() {
-        var resp;
-        while(true) {
+        let resp;
+        for(;;) {
             try {
                 resp = await client.post("/oauth/authorize", {"email": this.email, "password": this.password});
                 break;
@@ -43,7 +43,7 @@ class AuthorizationFetcher {
         this.authorizing = true;
         const authorizationToken = await this.fetchAuthorizationToken();
         const access = await client.post("/oauth/accesstoken", {"authorization": authorizationToken});
-        const accessToken = access.data.accesstoken;
+        const accessToken = access.data.accesstoken;       
         if (accessToken === null) {
             throw new Error("SensorPush returned a null access token, the dickenses");
         }
@@ -99,7 +99,7 @@ export async function* ingest(email: string, password: string): AsyncGenerator<S
     // to 28 doing it serially as it is now. 
     // 
     // JavaScript doesn't make that easy as far as I can tell. I think we'd need to do something like: 
-    // make an array of Promises out of the first item to comd out of the generators
+    // make an array of Promises out of the first item to come out of the generators
     // execute Promise.race on that array
     // yield the first object to come back
     // Remove the Promise that produced the yielded object from the array

@@ -8,7 +8,7 @@ export class Sensorpush {
 }
 
 function requireStrEnv(key :string) :string {
-    if (!process.env.hasOwnProperty(key)) { 
+    if (!Object.prototype.hasOwnProperty.call(process.env, key)) { 
         throw new Error(`Must have ${key} defined in env!`);
     }
     const value :any = process.env[key];
