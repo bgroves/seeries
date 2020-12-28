@@ -1,13 +1,7 @@
-import express from "express";
-
-import { pool } from "./db";
-import {
-  requireInQuery,
-  requireDateTimeInQuery,
-  requireEnumInQuery,
-  requireIntInQuery,
-  ValidationError,
-} from "./validators";
+import express from 'express';
+import format from 'pg-format';
+import { pool } from './db';
+import { requireInQuery, requireDateTimeInQuery, requireIntInQuery, requireSetMemberInQuery, ValidationError } from './validators';
 
 interface PartialSegment {
   start: Date;
@@ -19,45 +13,73 @@ interface Segment extends PartialSegment {
   end: Date;
 }
 
-enum Aggregation {
-  MAX = "MAX",
-  MIN = "MIN",
-  AVG = "AVG",
-}
+// Accepted values for the aggregation query param
+const AGGREGATION = new Set(['MAX', 'MIN', 'AVG']);
 
-export async function fetchSeries(
-  req: express.Request,
-  res: express.Response
-): Promise<void> {
-  const start = requireDateTimeInQuery(req, "start");
-  const end = requireDateTimeInQuery(req, "end");
-  const deviceName = requireInQuery(req, "device_name");
-  const sensor = requireInQuery(req, "sensor");
-  const aggregation = requireEnumInQuery(req, Aggregation, "aggregation");
-  const points = requireIntInQuery(req, "points");
+// Accepted values for the sensor query param if the device_name points to a sensorpush device
+const SENSOR_PUSH_SENSORS = new Set(['celsius', 'relative_humidity']);
 
-  if (points > 16_384) {
-    throw new ValidationError("16k points ought to be enough for anybody");
-  }
+// Accepted values for the sensor query param if the device_name points to a tempest device
+const TEMPEST_SENSORS = new Set([
+    'wind_lull',
+    'wind_avg',
+    'wind_gust',
+    'wind_direction',
+    'wind_sample_interval',
+    'pressure',
+    'celsius',
+    'relative_humidity',
+    'illuminance',
+    'uv',
+    'solar_radiation',
+    'rain_accumulation',
+    'precipitation_type',
+    'average_strike_distance',
+    'strike_count',
+    'battery',
+    'report_interval',
+    'local_day_rain_accumulation',
+    'rain_accumulation_final',
+    'local_day_rain_accumulation_final',
+    'precipitation_analysis_type'
+]);
 
-  const devices = await pool.query(
-    "SELECT id, type FROM device WHERE name = $1",
-    [deviceName]
-  );
-  const device = devices.rows[0];
+export async function fetchSeries(req: express.Request, res: express.Response): Promise<void> {
+    const start = requireDateTimeInQuery(req, 'start');
+    const end = requireDateTimeInQuery(req, 'end');
+    const deviceName = requireInQuery(req, 'device_name');
+    const aggregation = requireSetMemberInQuery(req, 'aggregation', AGGREGATION);
+    const points = requireIntInQuery(req, 'points');
 
-  const millis = end.getTime() - start.getTime();
-  const millisPerPoint = millis / points;
+    if (start.getTime() > end.getTime()) {
+        throw new ValidationError(`start of ${start} is after end at ${end}`);
+    }
 
-  const results = await pool.query(
-    `SELECT time_bucket_gapfill('${millisPerPoint} milliseconds', time) AS bucket, 
-        ${aggregation}(${sensor}) AS value 
-        FROM ${device.type} 
-        WHERE time >= $1 AND time < $2 
-        GROUP BY bucket 
-        ORDER BY bucket ASC`,
-    [start, end]
-  );
+    if (points > 16_384) {
+        throw new ValidationError("16k points ought to be enough for anybody");
+    }
+
+    const devices = await pool.query('SELECT id, type FROM device WHERE name = $1', [deviceName]);
+    if (devices.rows.length === 0) {
+        throw new ValidationError(`No device_name of '${deviceName}'`);
+    }
+    const device = devices.rows[0];
+
+    const deviceSensors = device.type === 'sensorpush' ? SENSOR_PUSH_SENSORS : TEMPEST_SENSORS;
+    const sensor: string = requireSetMemberInQuery(req, 'sensor', deviceSensors);
+
+    const millis = end.getTime() - start.getTime();
+    const millisPerPoint = millis / points;
+
+    // Select bucketed by the number of milliseconds between points necessary to fill this time interval. 
+    // Pass in the start as an origin to time_bucket as we want to align the buckets on the start time.
+    const query = format(`SELECT time_bucket(%L, time, timestamp with time zone %L) AS bucket,
+        %s(%I) AS value
+        FROM %I
+        WHERE time >= $1 AND time < $2 AND device_id = $3
+        GROUP BY bucket
+        ORDER BY bucket ASC`, `${millisPerPoint} milliseconds`, start, aggregation, sensor, device.type);
+    const results = await pool.query(query, [start, end, device.id]);
 
   var currentSegment: PartialSegment | null = null;
   const segments: Segment[] = [];
@@ -73,12 +95,25 @@ export async function fetchSeries(
       handleSegmentEnd(element.bucket);
       return;
     }
-    if (currentSegment === null) {
-      currentSegment = { start: element.bucket, points: [] };
+    results.rows.forEach((element, idx) => {
+        if (currentSegment !== null) {
+            const previousPointBucket = results.rows[idx - 1].bucket.getTime();
+            if (element.bucket.getTime() - previousPointBucket >= millisPerPoint + 1) {
+                handleSegmentEnd(new Date(previousPointBucket + millisPerPoint));
+            }
+        }
+        if (currentSegment === null) {
+            currentSegment = { start: element.bucket, points: [] };
+        }
+        currentSegment.points.push(element.value);
+    });
+    if (currentSegment !== null) {
+        const finalBucketTime = results.rows[results.rows.length - 1].bucket.getTime();
+        if (Math.abs(finalBucketTime - end.getTime()) === Math.ceil(millisPerPoint)) {
+            handleSegmentEnd(end);
+        } else {
+            handleSegmentEnd(new Date(finalBucketTime + millisPerPoint));
+        }
     }
-    currentSegment.points.push(element.value);
-  });
-  handleSegmentEnd(end);
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.send(segments);
+    res.send(segments);
 }
