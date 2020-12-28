@@ -2,7 +2,7 @@ import baretest from 'baretest';
 import assert from 'assert';
 import nock from 'nock';
 
-import { createAuthorizer, backfiller } from "../src/ingester";
+import { createAuthorizer, backfiller, ingest } from "../src/ingester";
 import { AxiosError } from 'axios';
 
 const test = baretest('ingester');
@@ -151,6 +151,18 @@ test("Working backfill", async () => {
   };
   const samples = [];
   for await (const item of backfiller(DEVICE_ID, mockAuthorizer)) {
+    samples.push(item);
+  }
+  assert.strictEqual(1, samples.length);
+  assert.strictEqual(2, samples[0]?.samples.length);
+});
+
+test("Full ingest", async () => {
+  nockAuth();
+  nockSensorList();
+  nockSensorFetch();
+  const samples = [];
+  for await (const item of ingest(ACCEPTED_EMAIL, ACCEPTED_PASSWORD)) {
     samples.push(item);
   }
   assert.strictEqual(1, samples.length);

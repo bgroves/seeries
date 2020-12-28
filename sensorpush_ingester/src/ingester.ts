@@ -134,15 +134,20 @@ export async function* backfiller(
   }
 }
 
+interface Sensors {
+  [id: string]: Sensor;
+}
+
 export async function* ingest(
   email: string,
   password: string
 ): AsyncGenerator<Samples, void, void> {
   const authorizer = createAuthorizer(email, password);
-  const sensors: AxiosResponse<{ [id: string]: Sensor }> = await client.post(
+  const auth = await authorizer();
+  const sensors: AxiosResponse<Sensors> = await client.post(
     "/devices/sensors",
     { active: true },
-    { headers: { Authorization: await authorizer() } }
+    { headers: { Authorization: auth } }
   );
 
   // Would be great to run these backfills in parallel. A quick test with 6 sensors shows it taking 7 seconds in parallel as opposed
