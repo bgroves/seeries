@@ -3,14 +3,18 @@ import Polyglot from 'node-polyglot';
 const phrases = {
   allDashboards: 'Dashboards',
   allDashboardsPageTitle: 'All Dashboards',
-  dashboardDetailPageTitle: 'Dashboard %{title}',
   applicationName: 'seeries',
-  startTime: 'Start Time',
-  endTime: 'End Time',
-  lightTheme: 'Light',
   darkTheme: 'Dark',
-  scrollToTop: 'Scroll To Top',
+  dashboardDetailPageTitle: 'Dashboard %{title}',
+  end: 'End Time',
+  endTime: 'End Time',
   home: 'Home',
+  lightTheme: 'Light',
+  live: 'Live Update',
+  scrollToTop: 'Scroll To Top',
+  start: 'Start Time',
+  startTime: 'Start Time',
+  submit: 'Submit',
 };
 
 const Labels = new Polyglot({

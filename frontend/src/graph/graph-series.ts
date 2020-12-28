@@ -1,71 +1,46 @@
-import Dashboard from '../dashboard/dashboard';
-import DashboardGraph from '../dashboard/dashboard-graph';
 import MinMax from '../series/min-max';
-import Series, { SeriesMap } from '../series/series';
-import { GraphScale } from './graph-scale';
-import { GraphWindow } from './graph-window';
+import Series from '../series/series';
+import GraphChunk from './graph-chunk';
 
-class GraphSeries implements GraphWindow, GraphScale {
-  private _scale: MinMax;
-  dashboard: Dashboard;
-  graph: DashboardGraph;
-  series: Series[];
+class GraphSeries {
+  private scale: MinMax;
+  private finished: number;
 
   constructor(
-    dashboard: Dashboard,
-    graph: DashboardGraph,
-    series: Series[],
-    scale: MinMax
+    public chunks: Promise<GraphChunk>[],
+    finished: number = 0,
+    scale: MinMax = new MinMax()
   ) {
-    this.dashboard = dashboard;
-    this.graph = graph;
-    this.series = series;
-    this._scale = scale;
-  }
-
-  get title(): string {
-    return this.graph.title;
-  }
-
-  get height(): number {
-    return this.graph.height;
-  }
-
-  get start(): Date {
-    return this.dashboard.start;
-  }
-
-  get end(): Date {
-    return this.dashboard.end;
+    this.scale = scale;
+    this.finished = finished;
   }
 
   get min(): number {
-    return this._scale.min;
+    return this.scale.min;
   }
 
   get max(): number {
-    return this._scale.max;
+    return this.scale.max;
   }
 
-  static create(
-    dashboard: Dashboard,
-    graph: DashboardGraph,
-    seriesByName: SeriesMap
-  ) {
-    const usedSeries = [];
-    const minMax = new MinMax();
+  get complete(): boolean {
+    return this.finished === this.chunks.length;
+  }
 
-    for (const name of graph.series) {
-      const series = seriesByName[name];
-      if (series != null) {
-        series.segments.forEach((segment) => {
-          minMax.extend(segment);
-        });
-        usedSeries.push(series);
-      }
-    }
+  static create(series: Promise<Series>): GraphSeries {
+    const chunks: Promise<GraphChunk>[] = [];
+    const result = new GraphSeries(chunks);
 
-    return new GraphSeries(dashboard, graph, usedSeries, minMax);
+    chunks.push(
+      series.then((loadedSeries) => {
+        result.finished++;
+        const chunk = GraphChunk.create(loadedSeries);
+        result.scale.extend(chunk);
+        return chunk;
+      })
+    );
+
+    return result;
   }
 }
 

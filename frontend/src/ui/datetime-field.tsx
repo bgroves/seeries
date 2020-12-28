@@ -1,20 +1,20 @@
-import React, { useState } from 'react';
-import Col from 'react-bootstrap/Col';
+import React from 'react';
 import labels from '../labels';
-import Dashboard from './dashboard';
 
-export interface DashboardTimeHeaderProps {
-  dashboard: Dashboard;
-  field: 'start' | 'end';
+export interface DatetimeFieldProps {
+  value: Date;
+  max?: Date;
+  onChange: (d: Date) => void;
+  field: string;
 }
 
 function ten(i: number): string {
   return (i < 10 ? '0' : '') + i;
 }
 
-function toDatetimeLocalString(date: Date | undefined): string {
+function toDatetimeLocalString(date: Date | undefined): string | undefined {
   if (date === undefined) {
-    return '';
+    return undefined;
   }
 
   const YYYY = date.getFullYear();
@@ -26,34 +26,33 @@ function toDatetimeLocalString(date: Date | undefined): string {
   return YYYY + '-' + MM + '-' + DD + 'T' + HH + ':' + II + ':' + SS;
 }
 
-export default function DashboardTimeHeader({
-  dashboard,
+export default function DatetimeField({
+  value,
+  max,
+  onChange,
   field,
-}: DashboardTimeHeaderProps): React.ReactElement {
-  const [time, setTime] = useState<Date>();
-  if (time == null) {
-    setTime(dashboard[field]);
-  }
-
+}: DatetimeFieldProps): React.ReactElement {
   function onTimeChange(event: React.ChangeEvent<HTMLInputElement>): void {
     const input = event.target.value;
     if (input != null) {
       const d = new Date(input);
-      dashboard[field] = d;
-      setTime(d);
+      onChange(d);
     }
   }
 
+  let maxValue: Date | undefined =
+    max === undefined ? undefined : new Date(max.getTime() - 100);
   return (
-    <>
-      <label htmlFor={field}>{labels(field + 'Time')}</label>
+    <div className="form-group">
+      <label htmlFor={field}>{labels(field)}</label>
       <input
         className="form-control"
         name={field}
         type="datetime-local"
-        value={toDatetimeLocalString(time)}
+        max={toDatetimeLocalString(maxValue)}
+        value={toDatetimeLocalString(value)}
         onChange={onTimeChange}
       />
-    </>
+    </div>
   );
 }

@@ -1,28 +1,52 @@
-import { trackPromise } from 'react-promise-tracker';
-import { SeriesMap } from './series';
-import { seriesByName } from './series-data-stub';
+import axios from 'axios';
+import queryString from 'querystring';
+import config from '../config';
+import GraphWindow from '../graph/graph-window';
+import { checkIsArray } from '../validation';
+import Series from './series';
+import SeriesID from './series-id';
+import SeriesMap from './series-map';
+import SeriesSegment from './series-segment';
 
-function getSeries(
-  start: Date,
-  end: Date,
-  points: number,
-  series: string[]
-): Promise<SeriesMap> {
-  const found: SeriesMap = {};
-  for (const k of series) {
-    const it = seriesByName[k];
-    if (it != null) {
-      found[k] = seriesByName[k].windowedBy({ start: start, end: end });
-    }
-  }
+let api = axios.create({
+  baseURL: config.apiUrl,
+  timeout: parseInt(config.apiTimeout),
+});
 
-  return trackPromise(
-    new Promise((resolve) => {
-      window.setTimeout(() => {
-        resolve(found);
-      }, 0);
-    })
-  );
+function toQueryString(window: GraphWindow, id: SeriesID): string {
+  return queryString.stringify({
+    start: window.start.toISOString(),
+    end: window.end.toISOString(),
+    points: window.pointScale,
+    device_name: id.device_name,
+    aggregation: id.aggregation,
+    sensor: id.sensor,
+  });
 }
 
-export { getSeries };
+export async function fetchSeries(
+  window: GraphWindow,
+  id: SeriesID
+): Promise<Series> {
+  try {
+    const response = await api.get('/series?' + toQueryString(window, id));
+    const data = checkIsArray<any>(response.data);
+    return new Series(id, window.pointScale, data.map(SeriesSegment.fromJSON));
+  } catch (error) {
+    console.log(error);
+    return error;
+  }
+}
+
+export function fetchAllSeries(
+  window: GraphWindow,
+  ids: SeriesID[]
+): SeriesMap {
+  const map = new SeriesMap();
+  for (const id of ids) {
+    const currentFetch = fetchSeries(window, id);
+    map.put(id, currentFetch);
+  }
+
+  return map;
+}

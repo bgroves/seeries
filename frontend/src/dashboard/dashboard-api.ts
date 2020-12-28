@@ -6,12 +6,12 @@ function getAllDashboards(): Promise<Dashboard[]> {
   return trackPromise(Promise.resolve(allDashboards));
 }
 
-function getDashboard(name: string): Promise<Dashboard> {
+function getDashboard(name: string, params: any): Promise<Dashboard> {
   const dashboard = dashboardsByName[name];
   return trackPromise(
     dashboard == null
       ? Promise.reject(new Error('Unknown Dashboard'))
-      : Promise.resolve(dashboard)
+      : Promise.resolve(dashboard.withParams(params))
   );
 }
 

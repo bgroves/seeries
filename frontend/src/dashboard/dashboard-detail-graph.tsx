@@ -2,11 +2,11 @@ import React from 'react';
 import Col from 'react-bootstrap/Col';
 import useResizeObserver from 'use-resize-observer';
 import GraphAreaChart from '../graph/graph-area-chart';
-import GraphSeries from '../graph/graph-series';
+import GraphViewModel from '../graph/graph-view-model';
 import './dashboard-detail-graph.scss';
 
 export interface DashboardDetailGraphProps {
-  graph: GraphSeries;
+  graph: GraphViewModel;
 }
 
 export default function DashboardDetailGraph({
@@ -25,7 +25,14 @@ export default function DashboardDetailGraph({
     >
       <div ref={ref}>
         <h2 className="dashboard-detail-graph-title">{graph.title}</h2>
-        <GraphAreaChart data={graph} width={width} height={graph.height} />
+        <GraphAreaChart
+          series={graph.series}
+          scale={graph.scale}
+          window={graph}
+          width={width}
+          baseId={graph.baseId}
+          height={graph.height}
+        />
       </div>
     </Col>
   );
