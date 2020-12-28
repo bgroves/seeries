@@ -1,4 +1,5 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
+import assert from "assert";
 
 import { rootLogger } from "./logger";
 
@@ -22,9 +23,6 @@ interface AccessTokenResponse {
   accesstoken: string;
 }
 
-function isMessage(data: unknown): data is { message: string | undefined } {
-  return (data as { message: string }).message !== undefined;
-}
 class AuthorizationFetcher {
   authorizing = false;
   authorization: Promise<string>;
@@ -50,9 +48,6 @@ class AuthorizationFetcher {
             "Got 403 auth error with this data: %O",
             error.response.data
           );
-          if (isMessage(error.response.data)) {
-            error.response.data.message = undefined;
-          }
           throw error;
         }
       }
@@ -105,7 +100,7 @@ interface SamplesData {
   sensors: { [id: string]: Sample[] };
 }
 
-async function* backfiller(
+export async function* backfiller(
   id: string,
   authorizer: Authorizer
 ): AsyncGenerator<Samples, void, void> {
@@ -128,6 +123,11 @@ async function* backfiller(
       );
     }
     const lastTime = new Date(data.last_time);
+    assert.ok(
+      Object.prototype.hasOwnProperty.call(data.sensors, id),
+     
+      `Expected requested device id ${id} to be present in sensors`
+    );
     yield { id: id, samples: data.sensors[id] };
 
     nextStartTime = new Date(lastTime.getTime() + 1_000).toISOString();
