@@ -121,7 +121,6 @@ export async function* backfiller(
     const lastTime = new Date(data.last_time);
     assert.ok(
       Object.prototype.hasOwnProperty.call(data.sensors, id),
-
       `Expected requested device id ${id} to be present in sensors`
     );
     yield { id: id, samples: data.sensors[id] };
