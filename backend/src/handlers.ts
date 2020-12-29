@@ -81,19 +81,14 @@ export async function fetchSeries(req: express.Request, res: express.Response): 
         ORDER BY bucket ASC`, `${millisPerPoint} milliseconds`, start, aggregation, sensor, device.type);
     const results = await pool.query(query, [start, end, device.id]);
 
-  var currentSegment: PartialSegment | null = null;
-  const segments: Segment[] = [];
-  function handleSegmentEnd(end: Date) {
-    if (currentSegment !== null) {
-      currentSegment.end = end;
-      segments.push(currentSegment as Segment);
-      currentSegment = null;
-    }
-  }
-  results.rows.forEach((element) => {
-    if (element.value === null) {
-      handleSegmentEnd(element.bucket);
-      return;
+    var currentSegment: PartialSegment | null = null;
+    const segments: Segment[] = [];
+    function handleSegmentEnd(end: Date) {
+      if (currentSegment !== null) {
+        currentSegment.end = end;
+        segments.push(currentSegment as Segment);
+        currentSegment = null;
+      }
     }
     results.rows.forEach((element, idx) => {
         if (currentSegment !== null) {
