@@ -44,6 +44,15 @@ const TEMPEST_SENSORS = new Set([
     'precipitation_analysis_type'
 ]);
 
+interface IdTypeRow {
+    id: string;
+    type: string;
+}
+interface BucketValueRow {
+    bucket: Date;
+    value: number;
+}
+
 export async function fetchSeries(req: express.Request, res: express.Response): Promise<void> {
     const start = requireDateTimeInQuery(req, 'start');
     const end = requireDateTimeInQuery(req, 'end');
@@ -52,14 +61,16 @@ export async function fetchSeries(req: express.Request, res: express.Response): 
     const points = requireIntInQuery(req, 'points');
 
     if (start.getTime() > end.getTime()) {
-        throw new ValidationError(`start of ${start} is after end at ${end}`);
+        throw new ValidationError(
+          `start of ${start.toString()} is after end at ${end.toString()}`
+        );
     }
 
     if (points > 16_384) {
         throw new ValidationError("16k points ought to be enough for anybody");
     }
 
-    const devices = await pool.query('SELECT id, type FROM device WHERE name = $1', [deviceName]);
+    const devices = await pool.query<IdTypeRow>('SELECT id, type FROM device WHERE name = $1', [deviceName]);
     if (devices.rows.length === 0) {
         throw new ValidationError(`No device_name of '${deviceName}'`);
     }
@@ -79,9 +90,9 @@ export async function fetchSeries(req: express.Request, res: express.Response): 
         WHERE time >= $1 AND time < $2 AND device_id = $3
         GROUP BY bucket
         ORDER BY bucket ASC`, `${millisPerPoint} milliseconds`, start, aggregation, sensor, device.type);
-    const results = await pool.query(query, [start, end, device.id]);
+    const results = await pool.query<BucketValueRow>(query, [start, end, device.id]);
 
-    var currentSegment: PartialSegment | null = null;
+    let currentSegment: PartialSegment | null = null;
     const segments: Segment[] = [];
     function handleSegmentEnd(end: Date) {
       if (currentSegment !== null) {
