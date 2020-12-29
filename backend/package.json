@@ -13,5 +13,9 @@
   },
   "scripts": {
     "build": "tsc --build tsconfig.all.json"
-  }
+  },
+  "workspaces": [
+    "api",
+    "sensorpush_ingester"
+  ]
 }
