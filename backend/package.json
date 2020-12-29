@@ -1,0 +1,10 @@
+{
+    "name": "seeries-backend",
+    "version": "0.1.0",
+    "license": "MIT",
+    "devDependencies": {
+        "@tsconfig/node14": "^1.0.0",
+        "typescript": "^4.1.3"
+    },
+    "scripts": {}
+}
