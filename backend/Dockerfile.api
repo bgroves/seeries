@@ -1,0 +1,10 @@
+FROM node:15.5-alpine
+WORKDIR /app
+
+# Copy npm install bits first as we want to cache that layer separately
+COPY  package-lock.json tsconfig.base.json package.json */package.json */tsconfig.json ./
+RUN npm --production install
+
+COPY api/build api/build
+
+CMD [ "node", "api/build/src/index.js" ]
