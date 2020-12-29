@@ -28,10 +28,7 @@ function nockAuth() {
     .post("/api/v1/oauth/accesstoken", {
       authorization: AUTHORIZED_AUTHORIZATION_CODE,
     })
-    .reply(200, { accesstoken: AUTHORIZED_ACCESS_TOKEN }, [
-      "Content-Type",
-      "application/json",
-    ]);
+    .reply(200, { accesstoken: AUTHORIZED_ACCESS_TOKEN }, ["Content-Type", "application/json"]);
 }
 
 function nockSensorList() {
@@ -133,10 +130,7 @@ test("Wrong email", async () => {
       email: badEmail,
       password: ACCEPTED_PASSWORD,
     })
-    .reply(403, { message: "invalid user" }, [
-      "Content-Type",
-      "application/json",
-    ]);
+    .reply(403, { message: "invalid user" }, ["Content-Type", "application/json"]);
   const authorizer = createAuthorizer(badEmail, ACCEPTED_PASSWORD);
   try {
     await authorizer();

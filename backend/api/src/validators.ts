@@ -36,10 +36,7 @@ export function requireSetMemberInQuery(
   return q;
 }
 
-export function requireDateTimeInQuery(
-  req: express.Request,
-  param: string
-): Date {
+export function requireDateTimeInQuery(req: express.Request, param: string): Date {
   const q = requireInQuery(req, param);
   if (!/^\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d\.\d\d\dZ$/.test(q)) {
     throw new ValidationError(

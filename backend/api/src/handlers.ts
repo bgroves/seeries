@@ -59,10 +59,7 @@ interface BucketValueRow {
   value: number;
 }
 
-export async function fetchSeries(
-  req: express.Request,
-  res: express.Response
-): Promise<void> {
+export async function fetchSeries(req: express.Request, res: express.Response): Promise<void> {
   const start = requireDateTimeInQuery(req, "start");
   const end = requireDateTimeInQuery(req, "end");
   const deviceName = requireInQuery(req, "device_name");
@@ -70,26 +67,22 @@ export async function fetchSeries(
   const points = requireIntInQuery(req, "points");
 
   if (start.getTime() > end.getTime()) {
-    throw new ValidationError(
-      `start of ${start.toString()} is after end at ${end.toString()}`
-    );
+    throw new ValidationError(`start of ${start.toString()} is after end at ${end.toString()}`);
   }
 
   if (points > 16_384) {
     throw new ValidationError("16k points ought to be enough for anybody");
   }
 
-  const devices = await pool.query<IdTypeRow>(
-    "SELECT id, type FROM device WHERE name = $1",
-    [deviceName]
-  );
+  const devices = await pool.query<IdTypeRow>("SELECT id, type FROM device WHERE name = $1", [
+    deviceName,
+  ]);
   if (devices.rows.length === 0) {
     throw new ValidationError(`No device_name of '${deviceName}'`);
   }
   const device = devices.rows[0];
 
-  const deviceSensors =
-    device.type === "sensorpush" ? SENSOR_PUSH_SENSORS : TEMPEST_SENSORS;
+  const deviceSensors = device.type === "sensorpush" ? SENSOR_PUSH_SENSORS : TEMPEST_SENSORS;
   const sensor: string = requireSetMemberInQuery(req, "sensor", deviceSensors);
 
   const millis = end.getTime() - start.getTime();
@@ -110,11 +103,7 @@ export async function fetchSeries(
     sensor,
     device.type
   );
-  const results = await pool.query<BucketValueRow>(query, [
-    start,
-    end,
-    device.id,
-  ]);
+  const results = await pool.query<BucketValueRow>(query, [start, end, device.id]);
 
   let currentSegment: PartialSegment | null = null;
   const segments: Segment[] = [];
@@ -128,10 +117,7 @@ export async function fetchSeries(
   results.rows.forEach((element, idx) => {
     if (currentSegment !== null) {
       const previousPointBucket = results.rows[idx - 1].bucket.getTime();
-      if (
-        element.bucket.getTime() - previousPointBucket >=
-        millisPerPoint + 1
-      ) {
+      if (element.bucket.getTime() - previousPointBucket >= millisPerPoint + 1) {
         handleSegmentEnd(new Date(previousPointBucket + millisPerPoint));
       }
     }
@@ -141,15 +127,11 @@ export async function fetchSeries(
     currentSegment.points.push(element.value);
   });
   if (currentSegment !== null) {
-    const finalBucketTime = results.rows[
-      results.rows.length - 1
-    ].bucket.getTime();
-    if (
-      Math.abs(finalBucketTime - end.getTime()) === Math.ceil(millisPerPoint)
-    ) {
+    const finalBucket = results.rows[results.rows.length - 1].bucket;
+    if (Math.abs(finalBucket.getTime() - end.getTime()) === Math.ceil(millisPerPoint)) {
       handleSegmentEnd(end);
     } else {
-      handleSegmentEnd(new Date(finalBucketTime + millisPerPoint));
+      handleSegmentEnd(new Date(finalBucket.getTime() + millisPerPoint));
     }
   }
   res.send(segments);

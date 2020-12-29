@@ -44,10 +44,7 @@ class AuthorizationFetcher {
           throw error;
         }
         if (error.response?.status === 403) {
-          logger.warn(
-            "Got 403 auth error with this data: %O",
-            error.response.data
-          );
+          logger.warn("Got 403 auth error with this data: %O", error.response.data);
           throw error;
         }
       }
@@ -61,12 +58,9 @@ class AuthorizationFetcher {
     }
     this.authorizing = true;
     const authorizationToken = await this.fetchAuthorizationToken();
-    const access: AxiosResponse<AccessTokenResponse> = await client.post(
-      "/oauth/accesstoken",
-      {
-        authorization: authorizationToken,
-      }
-    );
+    const access: AxiosResponse<AccessTokenResponse> = await client.post("/oauth/accesstoken", {
+      authorization: authorizationToken,
+    });
     const accessToken = access.data.accesstoken;
     if (accessToken === null) {
       throw new Error("SensorPush returned a null access token, the dickenses");

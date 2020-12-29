@@ -200,9 +200,7 @@ test("Wrong sensor for device type", async () => {
     }
     throw error;
   }
-  assert.fail(
-    "Expected request for a sensorpush device with a tempest-only sensor to raise a 400"
-  );
+  assert.fail("Expected request for a sensorpush device with a tempest-only sensor to raise a 400");
 });
 
 test("End before start", async () => {
@@ -219,9 +217,7 @@ test("End before start", async () => {
     }
     throw error;
   }
-  assert.fail(
-    "Expected request for a sensorpush device with a tempest-only sensor to raise a 400"
-  );
+  assert.fail("Expected request for a sensorpush device with a tempest-only sensor to raise a 400");
 });
 
 import { server } from "../src/index";
