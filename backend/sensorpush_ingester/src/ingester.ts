@@ -55,16 +55,18 @@ class AuthorizationFetcher {
     return resp.data.authorization;
   }
 
-
   authorize = async (reauthorize = false): Promise<string> => {
     if (!reauthorize || this.authorizing) {
       return this.authorization;
     }
     this.authorizing = true;
     const authorizationToken = await this.fetchAuthorizationToken();
-    const access: AxiosResponse<AccessTokenResponse> = await client.post("/oauth/accesstoken", {
-      authorization: authorizationToken,
-    });
+    const access: AxiosResponse<AccessTokenResponse> = await client.post(
+      "/oauth/accesstoken",
+      {
+        authorization: authorizationToken,
+      }
+    );
     const accessToken = access.data.accesstoken;
     if (accessToken === null) {
       throw new Error("SensorPush returned a null access token, the dickenses");
@@ -125,7 +127,7 @@ export async function* backfiller(
     const lastTime = new Date(data.last_time);
     assert.ok(
       Object.prototype.hasOwnProperty.call(data.sensors, id),
-     
+
       `Expected requested device id ${id} to be present in sensors`
     );
     yield { id: id, samples: data.sensors[id] };

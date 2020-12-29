@@ -1,32 +1,37 @@
-import baretest from 'baretest';
-import assert from 'assert';
-import nock from 'nock';
+import baretest from "baretest";
+import assert from "assert";
+import nock from "nock";
 
 import { createAuthorizer, backfiller, ingest } from "../src/ingester";
-import { AxiosError } from 'axios';
+import { AxiosError } from "axios";
 
-const test = baretest('ingester');
+const test = baretest("ingester");
 
 const ACCEPTED_EMAIL = "real_user@example.com";
 const ACCEPTED_PASSWORD = "correct_password";
-const AUTHORIZED_AUTHORIZATION_CODE = "iamnotarealauthorizationcode"
-const AUTHORIZED_ACCESS_TOKEN = "iamnotarealaccesstoken"
+const AUTHORIZED_AUTHORIZATION_CODE = "iamnotarealauthorizationcode";
+const AUTHORIZED_ACCESS_TOKEN = "iamnotarealaccesstoken";
 const DEVICE_ID = "207835.2051813140491938769";
 
 function nockAuth() {
-    nock("https://api.sensorpush.com")
-      .post("/api/v1/oauth/authorize", {
-        email: ACCEPTED_EMAIL,
-        password: ACCEPTED_PASSWORD,
-      })
-      .reply(200, { authorization: AUTHORIZED_AUTHORIZATION_CODE }, [
-        "Content-Type",
-        "application/json",
-      ]);
+  nock("https://api.sensorpush.com")
+    .post("/api/v1/oauth/authorize", {
+      email: ACCEPTED_EMAIL,
+      password: ACCEPTED_PASSWORD,
+    })
+    .reply(200, { authorization: AUTHORIZED_AUTHORIZATION_CODE }, [
+      "Content-Type",
+      "application/json",
+    ]);
 
-    nock('https://api.sensorpush.com')
-    .post('/api/v1/oauth/accesstoken', {"authorization":AUTHORIZED_AUTHORIZATION_CODE})
-    .reply(200, {"accesstoken":AUTHORIZED_ACCESS_TOKEN},[ 'Content-Type', 'application/json', ]);
+  nock("https://api.sensorpush.com")
+    .post("/api/v1/oauth/accesstoken", {
+      authorization: AUTHORIZED_AUTHORIZATION_CODE,
+    })
+    .reply(200, { accesstoken: AUTHORIZED_ACCESS_TOKEN }, [
+      "Content-Type",
+      "application/json",
+    ]);
 }
 
 function nockSensorList() {
@@ -106,42 +111,46 @@ function nockSensorFetch() {
     );
 }
 
-test('Working auth', async () => {
-    nockAuth();
-    const authorizer = createAuthorizer(ACCEPTED_EMAIL, ACCEPTED_PASSWORD);
-    const auth = await authorizer();
-    assert.strictEqual(AUTHORIZED_ACCESS_TOKEN, auth);
+test("Working auth", async () => {
+  nockAuth();
+  const authorizer = createAuthorizer(ACCEPTED_EMAIL, ACCEPTED_PASSWORD);
+  const auth = await authorizer();
+  assert.strictEqual(AUTHORIZED_ACCESS_TOKEN, auth);
 });
 
-
 function isAxiosError(error: unknown): error is AxiosError {
-    return (error as AxiosError).isAxiosError !== undefined;
+  return (error as AxiosError).isAxiosError !== undefined;
 }
 
-function isMessage(data: unknown): data is {message: string} {
-    return (data as {message: string}).message !== undefined;
+function isMessage(data: unknown): data is { message: string } {
+  return (data as { message: string }).message !== undefined;
 }
 
-test('Wrong email', async () => {
-    const badEmail = "not_real_user@example.com";
-    nock('https://api.sensorpush.com')
-      .post('/api/v1/oauth/authorize', {"email":badEmail, "password":ACCEPTED_PASSWORD})
-      .reply(403, {"message":"invalid user"}, [ 'Content-Type', 'application/json',]);
-    const authorizer = createAuthorizer(badEmail, ACCEPTED_PASSWORD);
-    try {
-        await authorizer();
-    } catch (error) {
-        if (isAxiosError(error)) {
-            assert.strictEqual(error.response?.status, 403);
-            if (isMessage(error.response?.data)) {
-                assert.strictEqual(error.response.data.message, "invalid user");
-                return;
-            }
-        }
-        throw error;
-        
+test("Wrong email", async () => {
+  const badEmail = "not_real_user@example.com";
+  nock("https://api.sensorpush.com")
+    .post("/api/v1/oauth/authorize", {
+      email: badEmail,
+      password: ACCEPTED_PASSWORD,
+    })
+    .reply(403, { message: "invalid user" }, [
+      "Content-Type",
+      "application/json",
+    ]);
+  const authorizer = createAuthorizer(badEmail, ACCEPTED_PASSWORD);
+  try {
+    await authorizer();
+  } catch (error) {
+    if (isAxiosError(error)) {
+      assert.strictEqual(error.response?.status, 403);
+      if (isMessage(error.response?.data)) {
+        assert.strictEqual(error.response.data.message, "invalid user");
+        return;
+      }
     }
-    assert.fail("Expected request without start to raise a 403")
+    throw error;
+  }
+  assert.fail("Expected request without start to raise a 403");
 });
 
 test("Working backfill", async () => {
@@ -169,6 +178,4 @@ test("Full ingest", async () => {
   assert.strictEqual(2, samples[0]?.samples.length);
 });
 
-void test.run()
-
-
+void test.run();
