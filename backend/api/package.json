@@ -22,11 +22,11 @@
     "typescript": "^4.0.3"
   },
   "scripts": {
-    "build": "tsc --project ./",
+    "build": "tsc --build ./",
     "dev": "ts-node-dev --transpile-only -- src/index.ts",
-    "start": "node build/src/index.js",
+    "start": "node ../build/api/src/index.js",
     "pretest": "npm run build",
-    "test": "node build/test/fetch_series.js",
+    "test": "node ../build/api/test/fetch_series.js",
     "test-dev": "ts-node-dev --respawn --transpile-only -- test/fetch_series.ts"
   }
 }
