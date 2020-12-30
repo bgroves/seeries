@@ -16,5 +16,5 @@ export const server = app.listen(PORT, () => {
     console.log(`🐇[series]: Server is hopping at https://localhost:${PORT}`);
 });
 server.addListener("close", () => {
-    pool.end();
-})
+  void pool.end();
+});

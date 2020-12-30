@@ -10,14 +10,11 @@
     "pino": "^6.7.0"
   },
   "devDependencies": {
-    "@tsconfig/node12": "^1.0.7",
     "@types/baretest": "^2.0.0",
     "@types/nock": "^11.1.0",
     "@types/node": "^14.11.8",
     "@types/pg": "^7.14.5",
     "@types/pino": "^6.3.4",
-    "@typescript-eslint/eslint-plugin": "^4.11.0",
-    "@typescript-eslint/parser": "^4.11.0",
     "baretest": "^2.0.0",
     "eslint": "^7.16.0",
     "eslint-plugin-node": "^11.1.0",

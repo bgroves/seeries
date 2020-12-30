@@ -10,8 +10,8 @@ services:
             POSTGRES_DB: seeries
         volumes: 
             - "/var/lib/postgresql/data"
-    backend:
-        build: backend
+    api:
+        build: backend/api
         ports: 
             - 8000:8000
     frontend:
