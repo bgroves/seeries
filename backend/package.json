@@ -16,6 +16,7 @@
   },
   "workspaces": [
     "api",
-    "sensorpush_ingester"
+    "sensorpush_ingester",
+    "shared"
   ]
 }

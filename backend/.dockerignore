@@ -1,8 +1,2 @@
-# Ignore everything by default. This way nothing can leak into the build context.
-*
-
-!tsconfig.base.json
-!*/tsconfig.json
-!**/package.json
-!package-lock.json
-!/api/src/**
+build
+node_modules

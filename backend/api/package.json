@@ -1,5 +1,5 @@
 {
-  "name": "seeries-api",
+  "name": "api",
   "version": "0.1.0",
   "main": "index.js",
   "license": "MIT",
@@ -10,7 +10,6 @@
     "pg-format": "^1.0.4"
   },
   "devDependencies": {
-    "@types/axios": "^0.14.0",
     "@types/baretest": "^2.0.0",
     "@types/express": "^4.17.8",
     "@types/node": "^14.11.8",

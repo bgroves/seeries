@@ -1,6 +1,6 @@
 import { ingest } from "./ingester";
 import { rootLogger } from "./logger";
-import { sensorpush } from "./config";
+import { sensorpush } from "../../shared/src/config";
 
 const logger = rootLogger.child({ module: "index" });
 logger.info("Starting");

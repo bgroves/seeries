@@ -13,7 +13,7 @@ services:
     api:
         build:
             context: backend
-            dockerfile: Dockerfile.api
+            target: api
         ports: 
             - 8000:8000
     frontend:
