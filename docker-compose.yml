@@ -4,16 +4,14 @@ services:
         build: db
         ports: 
             - 5432:5432
-        environment: 
-            POSTGRES_USER: seeries
-            POSTGRES_PASSWORD: RcJhCBt2CE2dz7#B
-            POSTGRES_DB: seeries
+        env_file: db/Docker.env.list
         volumes: 
             - "/var/lib/postgresql/data"
     api:
         build:
             context: backend
             target: api
+        env_file: backend/api/Docker.env.list
         ports: 
             - 8000:8000
     frontend:
