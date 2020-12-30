@@ -44,17 +44,13 @@ class AuthorizationFetcher {
           throw error;
         }
         if (error.response?.status === 403) {
-          logger.warn(
-            "Got 403 auth error with this data: %O",
-            error.response.data
-          );
+          logger.warn("Got 403 auth error with this data: %O", error.response.data);
           throw error;
         }
       }
     }
     return resp.data.authorization;
   }
-
 
   authorize = async (reauthorize = false): Promise<string> => {
     if (!reauthorize || this.authorizing) {
@@ -125,7 +121,6 @@ export async function* backfiller(
     const lastTime = new Date(data.last_time);
     assert.ok(
       Object.prototype.hasOwnProperty.call(data.sensors, id),
-     
       `Expected requested device id ${id} to be present in sensors`
     );
     yield { id: id, samples: data.sensors[id] };
