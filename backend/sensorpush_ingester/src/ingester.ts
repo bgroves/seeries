@@ -99,13 +99,14 @@ interface SamplesData {
 
 export async function* backfiller(
   id: string,
-  authorizer: Authorizer
+  authorizer: Authorizer,
+  latestTime: (x: string) => Promise<Date | undefined>
 ): AsyncGenerator<Samples, void, void> {
   logger.info("Fetching %d", id);
   while (true) {
     let nextStartTime = "";
     const lastTime = await latestTime(id);
-    if (lastTime != null) {
+    if (lastTime !== undefined) {
       nextStartTime = new Date(lastTime.getTime() + 1_000).toISOString();
     }
     const resp: AxiosResponse<SamplesData> = await client.post(
@@ -117,11 +118,6 @@ export async function* backfiller(
     const data = resp.data;
     if (data.total_samples === 0) {
       return;
-    }
-    if (!/^\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d\.\d\d\dZ$/.test(data.last_time)) {
-      throw new Error(
-        `'last_time' must be an date time string with full time precision and a 'Z' time zone(https://www.ecma-international.org/ecma-262/11.0/#sec-date.parse), not '${data.last_time}'`
-      );
     }
     assert.ok(
       Object.prototype.hasOwnProperty.call(data.sensors, id),
@@ -162,6 +158,6 @@ export async function* fetchLatest(authorizer: Authorizer): AsyncGenerator<Sampl
   //
   // Yuck.
   for (const sensor of Object.values(sensors.data)) {
-    yield* backfiller(sensor.id, authorizer);
+    yield * backfiller(sensor.id, authorizer, latestTime);
   }
 }

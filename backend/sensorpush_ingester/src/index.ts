@@ -1,4 +1,4 @@
-import { createAuthorizer, fetchLatest, ingest } from "./ingester";
+import { createAuthorizer, fetchLatest } from "./ingester";
 import { rootLogger } from "./logger";
 import { requireStrEnv } from "../../shared/src/config";
 import { insert } from "./db";

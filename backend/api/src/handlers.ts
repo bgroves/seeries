@@ -74,7 +74,7 @@ export async function fetchSeries(req: express.Request, res: express.Response): 
     throw new ValidationError("16k points ought to be enough for anybody");
   }
 
-  const devices = await pool.query<IdTypeRow>("SELECT id, type FROM device WHERE name = $1", [
+  const devices = await pool().query<IdTypeRow>("SELECT id, type FROM device WHERE name = $1", [
     deviceName,
   ]);
   if (devices.rows.length === 0) {
@@ -103,7 +103,7 @@ export async function fetchSeries(req: express.Request, res: express.Response): 
     sensor,
     device.type
   );
-  const results = await pool.query<BucketValueRow>(query, [start, end, device.id]);
+  const results = await pool().query<BucketValueRow>(query, [start, end, device.id]);
 
   let currentSegment: PartialSegment | null = null;
   const segments: Segment[] = [];

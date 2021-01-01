@@ -1,9 +1,11 @@
 import assert from "assert";
 import nock from "nock";
 
-import { createAuthorizer, backfiller, ingest } from "../src/ingester";
+import { createAuthorizer, backfiller, ingest, Samples, fetchLatest } from "../src/ingester";
 import { AxiosError } from "axios";
 import { Caretest } from "../../shared/src/caretest";
+import { ephemerally } from "../../shared/src/db";
+import { insert } from "../src/db";
 
 const suite = new Caretest("ingester");
 export default suite;
@@ -148,27 +150,36 @@ suite.test("Wrong email", async () => {
   assert.fail("Expected request without start to raise a 403");
 });
 
-suite.skip("Working backfill", async () => {
+suite.test("Working backfill", async () => {
   nockSensorFetch();
   const mockAuthorizer = () => {
     return Promise.resolve(AUTHORIZED_ACCESS_TOKEN);
   };
+  const results: (undefined | Date)[] = [undefined, new Date("2020-12-28T10:23:45.000Z")];
+  function latestTime(): Promise<undefined | Date> {
+    return Promise.resolve(results.shift());
+  }
   const samples = [];
-  for await (const item of backfiller(DEVICE_ID, mockAuthorizer)) {
+  for await (const item of backfiller(DEVICE_ID, mockAuthorizer, latestTime)) {
     samples.push(item);
   }
   assert.strictEqual(1, samples.length);
   assert.strictEqual(2, samples[0]?.samples.length);
 });
 
-suite.skip("Full ingest", async () => {
+suite.test("Full ingest", async () => {
   nockAuth();
   nockSensorList();
   nockSensorFetch();
-  const samples = [];
-  for await (const item of ingest(ACCEPTED_EMAIL, ACCEPTED_PASSWORD)) {
-    samples.push(item);
+  const samples :Samples[]= [];
+  await ephemerally(async () => {
+
+  for await (const sample of fetchLatest(createAuthorizer(ACCEPTED_EMAIL, ACCEPTED_PASSWORD))) {
+    await insert(sample);
+    samples.push(sample);
   }
+      });
+
   assert.strictEqual(1, samples.length);
   assert.strictEqual(2, samples[0]?.samples.length);
 });
