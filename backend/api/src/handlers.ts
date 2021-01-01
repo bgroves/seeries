@@ -1,6 +1,6 @@
 import express from "express";
 import format from "pg-format";
-import { pool } from "./db";
+import { pool } from "../../shared/src/db";
 import {
   requireInQuery,
   requireDateTimeInQuery,

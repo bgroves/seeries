@@ -2,7 +2,7 @@ import express from "express";
 import Router from "express-promise-router";
 import { fetchSeries } from "./handlers";
 import { validationErrorHandler } from "./validators";
-import { pool } from "./db";
+import { pool } from "../../shared/src/db";
 
 const router = Router();
 router.get("/series", fetchSeries);
