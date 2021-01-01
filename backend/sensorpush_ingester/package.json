@@ -23,9 +23,10 @@
   "scripts": {
     "build": "tsc --build ./",
     "dev": "ts-node-dev --transpile-only -- src/index.ts",
+    "prestart": "npm run build",
     "start": "node ../build/sensorpush_ingester/src/index.js | pino-pretty --ignore name,pid,hostname,module,level --colorize --translateTime 'HH:MM:ss.l'",
     "pretest": "npm run build",
-    "test": "node ../build/sensorpush_ingester/test/ingester.js",
-    "test-dev": "ts-node-dev --respawn --transpile-only --clear -- test/ingester.ts"
+    "test": "node ../build/sensorpush_ingester/test",
+    "test-dev": "ts-node-dev --respawn --transpile-only --clear -- test/index.ts"
   }
 }

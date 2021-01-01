@@ -2,6 +2,7 @@ import axios, { AxiosError, AxiosResponse } from "axios";
 import assert from "assert";
 
 import { rootLogger } from "./logger";
+import { latestTime } from "./db";
 
 const logger = rootLogger.child({ module: "ingester" });
 
@@ -85,7 +86,7 @@ interface Sample {
   humidity: number;
 }
 
-interface Samples {
+export interface Samples {
   id: string;
   samples: Sample[];
 }
@@ -101,8 +102,12 @@ export async function* backfiller(
   authorizer: Authorizer
 ): AsyncGenerator<Samples, void, void> {
   logger.info("Fetching %d", id);
-  let nextStartTime = "";
   while (true) {
+    let nextStartTime = "";
+    const lastTime = await latestTime(id);
+    if (lastTime != null) {
+      nextStartTime = new Date(lastTime.getTime() + 1_000).toISOString();
+    }
     const resp: AxiosResponse<SamplesData> = await client.post(
       "/samples",
       { startTime: nextStartTime, limit: 1_000, sensors: [id] },
@@ -118,14 +123,11 @@ export async function* backfiller(
         `'last_time' must be an date time string with full time precision and a 'Z' time zone(https://www.ecma-international.org/ecma-262/11.0/#sec-date.parse), not '${data.last_time}'`
       );
     }
-    const lastTime = new Date(data.last_time);
     assert.ok(
       Object.prototype.hasOwnProperty.call(data.sensors, id),
       `Expected requested device id ${id} to be present in sensors`
     );
     yield { id: id, samples: data.sensors[id] };
-
-    nextStartTime = new Date(lastTime.getTime() + 1_000).toISOString();
   }
 }
 
@@ -137,12 +139,14 @@ export async function* ingest(
   email: string,
   password: string
 ): AsyncGenerator<Samples, void, void> {
-  const authorizer = createAuthorizer(email, password);
-  const auth = await authorizer();
+  yield* fetchLatest(createAuthorizer(email, password));
+}
+
+export async function* fetchLatest(authorizer: Authorizer): AsyncGenerator<Samples, void, void> {
   const sensors: AxiosResponse<Sensors> = await client.post(
     "/devices/sensors",
     { active: true },
-    { headers: { Authorization: auth } }
+    { headers: { Authorization: await authorizer() } }
   );
 
   // Would be great to run these backfills in parallel. A quick test with 6 sensors shows it taking 7 seconds in parallel as opposed

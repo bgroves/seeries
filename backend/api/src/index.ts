@@ -5,6 +5,7 @@ import { validationErrorHandler } from "./validators";
 import { pool } from "../../shared/src/db";
 
 const router = Router();
+// eslint-disable-next-line @typescript-eslint/no-misused-promises
 router.get("/series", fetchSeries);
 
 const app = express();
