@@ -3,6 +3,7 @@ import assert from "assert";
 import axios, { AxiosError } from "axios";
 export const suite = new Caretest("handlers");
 
+import { server } from "../src/index";
 const baseStart = "2020-10-01T00:00:00.000Z";
 const baseEnd = "2020-10-01T00:30:00.000Z";
 const baseParams = {
@@ -218,4 +219,8 @@ suite.test("End before start", async () => {
     throw error;
   }
   assert.fail("Expected request for a sensorpush device with a tempest-only sensor to raise a 400");
+});
+
+suite.after(() => {
+  server.close();
 });

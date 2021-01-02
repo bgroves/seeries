@@ -1,8 +1,9 @@
-import { suite } from "./test_handlers";
+import { suite as handlers } from "./test_handlers";
 import { run } from "../../shared/src/caretest";
-import { server } from "../src/index";
 
-void (async () => {
-  await run(suite);
-  server.close();
-})();
+export const suites = [handlers];
+if (require.main === module) {
+  void (async () => {
+    await run(handlers);
+  })();
+}
