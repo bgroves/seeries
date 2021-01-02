@@ -1,7 +1,7 @@
 import assert from "assert";
 import nock from "nock";
 
-import { createAuthorizer, backfiller, ingest, Samples, fetchLatest } from "../src/ingester";
+import { createAuthorizer, backfiller, Samples, fetchLatest } from "../src/ingester";
 import { AxiosError } from "axios";
 import { Caretest } from "../../shared/src/caretest";
 import { ephemerally } from "../../shared/src/db";
