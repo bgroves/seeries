@@ -20,11 +20,11 @@ async function insertLatest() {
   const delay = nextStart < now ? 0 : nextStart - now;
   if (delay > 0) {
     logger.info(
-      `Took ${(now - lastStart)  /  1_000} seconds. Running next in ${delay  /  1_000} seconds.`
+      `Took ${(now - lastStart) / 1_000} seconds. Running next in ${delay / 1_000} seconds.`
     );
   } else {
     logger.warn(
-      `Took ${(now - lastStart)  /  1_000} seconds, over a minute! Running again immediately.`
+      `Took ${(now - lastStart) / 1_000} seconds, over a minute! Running again immediately.`
     );
   }
   setTimeout(() => {

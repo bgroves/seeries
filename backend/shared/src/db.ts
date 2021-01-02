@@ -12,9 +12,8 @@ export function end(): void {
   void underlyingPool.end();
 }
 
-
 // This is inspired by Django's [transaction management(https://docs.djangoproject.com/en/3.1/topics/db/transactions/).
-// You can grab a client in AsyncLocalStorage and then every call to pool will use that client. That means you can 
+// You can grab a client in AsyncLocalStorage and then every call to pool will use that client. That means you can
 // put a bunch of calls that use the db into a shared transaction without having to explicitly pass a client into them.
 //
 // It'll likely be necessary to add an "atomic" function like Django's that allows nesting of atomic database behavior.

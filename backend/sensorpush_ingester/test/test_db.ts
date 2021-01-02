@@ -15,16 +15,14 @@ function isError(e: unknown): e is Error {
   return (e as Error).message !== undefined;
 }
 suite.test("Insert 1", async () => {
-  await ephemerally(
-    async () => {
-      const deviceId = await insert(singleSample);
-      const result = await pool().query<{   time: Date}>(
-        "SELECT time FROM sensorpush WHERE device_id = $1;",
-        [deviceId]
-      );
-      assert.deepStrictEqual(result.rows.length, 1);
-    }
-  );
+  await ephemerally(async () => {
+    const deviceId = await insert(singleSample);
+    const result = await pool().query<{ time: Date }>(
+      "SELECT time FROM sensorpush WHERE device_id = $1;",
+      [deviceId]
+    );
+    assert.deepStrictEqual(result.rows.length, 1);
+  });
 });
 suite.test("Inserting the same sample twice fails", async () => {
   await ephemerally(async () => {

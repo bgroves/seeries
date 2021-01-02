@@ -171,14 +171,13 @@ suite.test("Full ingest", async () => {
   nockAuth();
   nockSensorList();
   nockSensorFetch();
-  const samples :Samples[]= [];
+  const samples: Samples[] = [];
   await ephemerally(async () => {
-
-  for await (const sample of fetchLatest(createAuthorizer(ACCEPTED_EMAIL, ACCEPTED_PASSWORD))) {
-    await insert(sample);
-    samples.push(sample);
-  }
-      });
+    for await (const sample of fetchLatest(createAuthorizer(ACCEPTED_EMAIL, ACCEPTED_PASSWORD))) {
+      await insert(sample);
+      samples.push(sample);
+    }
+  });
 
   assert.strictEqual(1, samples.length);
   assert.strictEqual(2, samples[0]?.samples.length);

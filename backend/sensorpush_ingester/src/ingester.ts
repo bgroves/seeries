@@ -158,6 +158,6 @@ export async function* fetchLatest(authorizer: Authorizer): AsyncGenerator<Sampl
   //
   // Yuck.
   for (const sensor of Object.values(sensors.data)) {
-    yield * backfiller(sensor.id, authorizer, latestTime);
+    yield* backfiller(sensor.id, authorizer, latestTime);
   }
 }
