@@ -1,5 +1,6 @@
-// Based on [baretest](https://github.com/volument/baretest).
+// Based on baretest(https://github.com/volument/baretest).
 // c is the next step from b and caretest is the next step from baretest.
+//
 // We're forking it to allow for access to the "onlys" list for running multiple suites in our run
 // function.
 //

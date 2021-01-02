@@ -9,11 +9,9 @@
     "pino": "^6.7.0"
   },
   "devDependencies": {
-    "@types/baretest": "^2.0.0",
     "@types/node": "^14.11.8",
     "@types/pg": "^7.14.5",
     "@types/pino": "^6.3.4",
-    "baretest": "^2.0.0",
     "nock": "^13.0.5",
     "pino-pretty": "^4.3.0",
     "ts-node": "^9.0.0",
@@ -27,6 +25,6 @@
     "start": "node ../build/sensorpush_ingester/src/index.js | pino-pretty --ignore name,pid,hostname,module,level --colorize --translateTime 'HH:MM:ss.l'",
     "pretest": "npm run build",
     "test": "node ../build/sensorpush_ingester/test",
-    "test-dev": "ts-node-dev --respawn --transpile-only --clear -- test/index.ts"
+    "test-dev": "ts-node-dev --respawn --transpile-only --clear -- test"
   }
 }

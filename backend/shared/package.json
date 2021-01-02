@@ -1,8 +1,5 @@
 {
   "name": "shared",
   "version": "0.1.0",
-  "license": "MIT",
-  "dependencies": {
-    "barecolor": "^1.0.1"
-  }
+  "license": "MIT"
 }
