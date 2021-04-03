@@ -7,3 +7,7 @@ export function requireStrEnv(key: string): string {
   }
   return value;
 }
+
+export function requireIntEnv(key: string): number {
+  return Number.parseInt(requireStrEnv(key), 10);
+}
