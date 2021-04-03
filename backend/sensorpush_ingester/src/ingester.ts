@@ -1,4 +1,4 @@
-import axios, { AxiosError, AxiosResponse } from "axios";
+import got, { HTTPError, Response } from "got";
 import assert from "assert";
 
 import { rootLogger } from "./logger";
@@ -6,14 +6,14 @@ import { latestTime } from "./db";
 
 const logger = rootLogger.child({ module: "ingester" });
 
-const client = axios.create({ baseURL: "https://api.sensorpush.com/api/v1" });
+const client = got.extend({ prefixUrl: "https://api.sensorpush.com/api/v1", responseType: "json" });
 
 interface Authorizer {
   (reauthorize?: boolean): Promise<string>;
 }
 
-function isAxiosError(error: unknown): error is AxiosError {
-  return (error as AxiosError).isAxiosError !== undefined;
+export function isResponseError(error: unknown): error is HTTPError {
+  return (error as HTTPError).response !== undefined;
 }
 
 interface AuthorizationResponse {
@@ -33,24 +33,27 @@ class AuthorizationFetcher {
   }
 
   async fetchAuthorizationToken() {
-    let resp: AxiosResponse<AuthorizationResponse> | undefined;
+    let resp: Response<AuthorizationResponse> | undefined;
     while (resp === undefined) {
       try {
-        resp = await client.post("/oauth/authorize", {
-          email: this.email,
-          password: this.password,
+        resp = await client.post("oauth/authorize", {
+          json: {
+            email: this.email,
+            password: this.password,
+          },
+          responseType: "json",
         });
       } catch (error) {
-        if (!isAxiosError(error)) {
+        if (!isResponseError(error)) {
           throw error;
         }
-        if (error.response?.status === 403) {
-          logger.warn("Got 403 auth error with this data: %O", error.response.data);
+        if (error.response.statusCode === 403) {
+          logger.warn("Got 403 auth error with this data: %O", error.response.body);
           throw error;
         }
       }
     }
-    return resp.data.authorization;
+    return resp.body.authorization;
   }
 
   authorize = async (reauthorize = false): Promise<string> => {
@@ -59,10 +62,11 @@ class AuthorizationFetcher {
     }
     this.authorizing = true;
     const authorizationToken = await this.fetchAuthorizationToken();
-    const access: AxiosResponse<AccessTokenResponse> = await client.post("/oauth/accesstoken", {
-      authorization: authorizationToken,
+    const access: Response<AccessTokenResponse> = await client.post("oauth/accesstoken", {
+      json: { authorization: authorizationToken },
+      responseType: "json",
     });
-    const accessToken = access.data.accesstoken;
+    const accessToken = access.body.accesstoken;
     if (accessToken === null) {
       throw new Error("SensorPush returned a null access token, the dickenses");
     }
@@ -109,13 +113,13 @@ export async function* backfiller(
     if (lastTime !== undefined) {
       nextStartTime = new Date(lastTime.getTime() + 1_000).toISOString();
     }
-    const resp: AxiosResponse<SamplesData> = await client.post(
-      "/samples",
-      { startTime: nextStartTime, limit: 1_000, sensors: [id] },
-      { headers: { Authorization: await authorizer() } }
-    );
-    logger.debug("HTTP Status %d", resp.status);
-    const data = resp.data;
+    const resp: Response<SamplesData> = await client.post("samples", {
+      headers: { Authorization: await authorizer() },
+      json: { startTime: nextStartTime, limit: 1_000, sensors: [id] },
+      responseType: "json",
+    });
+    logger.debug("HTTP Status %d", resp.statusCode);
+    const data = resp.body;
     if (data.total_samples === 0) {
       return;
     }
@@ -139,11 +143,11 @@ export async function* ingest(
 }
 
 export async function* fetchLatest(authorizer: Authorizer): AsyncGenerator<Samples, void, void> {
-  const sensors: AxiosResponse<Sensors> = await client.post(
-    "/devices/sensors",
-    { active: true },
-    { headers: { Authorization: await authorizer() } }
-  );
+  const sensors: Response<Sensors> = await client.post("devices/sensors", {
+    json: { active: true },
+    headers: { Authorization: await authorizer() },
+    responseType: "json",
+  });
 
   // Would be great to run these backfills in parallel. A quick test with 6 sensors shows it taking 7 seconds in parallel as opposed
   // to 28 doing it serially as it is now.
@@ -157,7 +161,7 @@ export async function* fetchLatest(authorizer: Authorizer): AsyncGenerator<Sampl
   // Continue racing and yielding till the Promise array is empty.
   //
   // Yuck.
-  for (const sensor of Object.values(sensors.data)) {
+  for (const sensor of Object.values(sensors.body)) {
     yield* backfiller(sensor.id, authorizer, latestTime);
   }
 }

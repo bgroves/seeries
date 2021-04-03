@@ -1,8 +1,13 @@
 import assert from "assert";
 import nock from "nock";
 
-import { createAuthorizer, backfiller, Samples, fetchLatest } from "../src/ingester";
-import { AxiosError } from "axios";
+import {
+  createAuthorizer,
+  backfiller,
+  Samples,
+  fetchLatest,
+  isResponseError,
+} from "../src/ingester";
 import { Caretest } from "../../shared/src/caretest";
 import { ephemerally } from "../../shared/src/db";
 import { insert } from "../src/db";
@@ -14,7 +19,7 @@ const ACCEPTED_EMAIL = "real_user@example.com";
 const ACCEPTED_PASSWORD = "correct_password";
 const AUTHORIZED_AUTHORIZATION_CODE = "iamnotarealauthorizationcode";
 const AUTHORIZED_ACCESS_TOKEN = "iamnotarealaccesstoken";
-const DEVICE_ID = "207835.2051813140491938769";
+const DEVICE_ID = "123.456789";
 
 function nockAuth() {
   nock("https://api.sensorpush.com")
@@ -45,7 +50,7 @@ function nockSensorList() {
           address: "EE:25:3B:1C:8A:2D",
           name: "Living Room",
           active: true,
-          deviceId: "207835",
+          deviceId: "123",
           alerts: {
             temperature: { enabled: false },
             humidity: { enabled: false },
@@ -118,10 +123,6 @@ suite.test("Working auth", async () => {
   assert.strictEqual(AUTHORIZED_ACCESS_TOKEN, auth);
 });
 
-function isAxiosError(error: unknown): error is AxiosError {
-  return (error as AxiosError).isAxiosError !== undefined;
-}
-
 function isMessage(data: unknown): data is { message: string } {
   return (data as { message: string }).message !== undefined;
 }
@@ -138,10 +139,10 @@ suite.test("Wrong email", async () => {
   try {
     await authorizer();
   } catch (error) {
-    if (isAxiosError(error)) {
-      assert.strictEqual(error.response?.status, 403);
-      if (isMessage(error.response?.data)) {
-        assert.strictEqual(error.response.data.message, "invalid user");
+    if (isResponseError(error)) {
+      assert.strictEqual(error.response.statusCode, 403);
+      if (isMessage(error.response.body)) {
+        assert.strictEqual(error.response.body.message, "invalid user");
         return;
       }
     }

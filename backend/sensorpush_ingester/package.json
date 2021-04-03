@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "license": "MIT",
   "dependencies": {
-    "axios": "^0.20.0",
     "dotenv": "^8.2.0",
+    "got": "^11.8.1",
     "pg": "^8.4.1",
     "pino": "^6.7.0"
   },
@@ -20,9 +20,9 @@
   },
   "scripts": {
     "build": "tsc --build ./",
-    "dev": "ts-node-dev --transpile-only -- src/index.ts",
+    "dev": "ts-node-dev --transpile-only -- src",
     "prestart": "npm run build",
-    "start": "node ../build/sensorpush_ingester/src/index.js | pino-pretty --ignore name,pid,hostname,module,level --colorize --translateTime 'HH:MM:ss.l'",
+    "start": "node ../build/sensorpush_ingester/src | pino-pretty --ignore name,pid,hostname,module,level --colorize --translateTime 'HH:MM:ss.l'",
     "pretest": "npm run build",
     "test": "node ../build/sensorpush_ingester/test",
     "test-dev": "ts-node-dev --respawn --transpile-only --clear -- test"

@@ -15,6 +15,7 @@
     "build": "tsc --build tsconfig.all.json",
     "pretest": "npm run build",
     "test": "node build/test",
+    "test-dev": "ts-node-dev --respawn --transpile-only -- test",
     "prprep": "npm test && eslint . && prettier --write . && docker build ."
   },
   "workspaces": [
