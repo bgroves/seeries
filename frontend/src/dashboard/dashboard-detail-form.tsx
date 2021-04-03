@@ -1,9 +1,9 @@
 import React from 'react';
 import { Col } from 'react-bootstrap';
 import Row from 'react-bootstrap/Row';
-import { useNavigation } from 'react-navi';
 import CheckboxField from '../ui/checkbox-field';
 import RawDatetimeField from '../ui/datetime-field';
+import { useHistory } from 'react-router-dom';
 
 export interface DashboardDetailFormProps {
   start: Date;
@@ -24,12 +24,12 @@ export default function DashboardDetail({
   name,
   live,
 }: DashboardDetailFormProps): React.ReactElement {
-  const navigation = useNavigation();
+  const history = useHistory();
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>): void {
     e.preventDefault();
     if (start !== undefined || end !== undefined) {
-      navigation.navigate(
+      history.push(
         '/dashboards/' +
           name +
           '?start=' +

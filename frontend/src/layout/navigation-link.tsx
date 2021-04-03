@@ -1,5 +1,5 @@
 import React from 'react';
-import {Link} from 'react-navi';
+import { NavLink } from 'react-router-dom';
 
 export interface NavigationLinkProps {
   href: string;
@@ -7,11 +7,19 @@ export interface NavigationLinkProps {
   children: any;
 }
 
-export default function NavigationLink({href, exact, children}: NavigationLinkProps) {
+export default function NavigationLink({
+  href,
+  exact,
+  children,
+}: NavigationLinkProps) {
   return (
-    <Link href={href}
-          exact={exact}
-          className="nav-link"
-          activeClassName="active">{children}</Link>
+    <NavLink
+      to={href}
+      exact={exact}
+      className="nav-link"
+      activeClassName="active"
+    >
+      {children}
+    </NavLink>
   );
 }

@@ -24,6 +24,16 @@ function toQueryString(window: GraphWindow, id: SeriesID): string {
   });
 }
 
+export class SeriesFetchError extends Error {
+  constructor(
+    message?: string,
+    public title: string = 'Unable to fetch series'
+  ) {
+    super(message);
+    this.name = 'SeriesFetchError';
+  }
+}
+
 export async function fetchSeries(
   window: GraphWindow,
   id: SeriesID
@@ -32,9 +42,12 @@ export async function fetchSeries(
     const response = await api.get('/series?' + toQueryString(window, id));
     const data = checkIsArray<any>(response.data);
     return new Series(id, window.pointScale, data.map(SeriesSegment.fromJSON));
-  } catch (error) {
-    console.log(error);
-    return error;
+  } catch (e) {
+    if (e.response != null && e.response.data != null) {
+      throw new SeriesFetchError(e.response.data);
+    } else {
+      throw e;
+    }
   }
 }
 

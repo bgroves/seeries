@@ -3,7 +3,8 @@
     "python.pythonPath": "/usr/local/bin/python3",
     "python.linting.enabled": true,
     "files.watcherExclude": {
-        "bootstrap/**": true
+        "bootstrap/**": true,
+        "**/node_modules/**": true
     },
     "search.exclude": {
         "bootstrap/**": true
@@ -16,5 +17,8 @@
     "python.workspaceSymbols.exclusionPatterns": [
         "**/site-packages/**",
         "bootstrap/**"
-    ]
+    ],
+    "files.exclude": {
+        "**/node_modules": true
+    }
 }

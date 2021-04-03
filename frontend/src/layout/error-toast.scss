@@ -1,0 +1,18 @@
+@import '../theme';
+
+.page-dark {
+  .toast-header {
+    background-color: $dark-bg-color;
+    color: $dark-fg-color;
+    border-bottom: 1px solid $dark-border-color;
+  }
+
+  .toast-body {
+    background-color: $dark-bg-color2;
+    color: $dark-fg-color;
+  }
+
+  button.close {
+    color: $dark-fg-color;
+  }
+}

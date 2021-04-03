@@ -1,14 +1,12 @@
-import React, { Suspense } from 'react';
-import { Router, View } from 'react-navi';
-import routes from './app-routes';
+import React from 'react';
+import AppRouter from './app-router';
+import PageErrorBoundary from './layout/page-error-boundary';
 
 function App(): React.ReactElement {
   return (
-    <Router routes={routes}>
-      <Suspense fallback={null}>
-        <View />
-      </Suspense>
-    </Router>
+    <PageErrorBoundary>
+      <AppRouter />
+    </PageErrorBoundary>
   );
 }
 

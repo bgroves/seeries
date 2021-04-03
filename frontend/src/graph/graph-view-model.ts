@@ -70,7 +70,7 @@ class GraphViewModel implements GraphWindow {
     for (const name of graph.series) {
       const series = map.get(name);
       if (series === undefined) {
-        throw new Error(`Unknown series "${name}"`);
+        return Promise.reject(new Error(`Unknown series "${name}"`));
       }
       toLoad.push(series);
       toCreate.push(GraphSeries.create(series));
