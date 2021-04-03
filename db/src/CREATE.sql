@@ -10,7 +10,7 @@ CREATE TABLE sensorpush (
     relative_humidity DOUBLE PRECISION NOT NULL
 );
 SELECT create_hypertable('sensorpush', 'time');
-CREATE INDEX ON sensorpush (device_id, time DESC);
+CREATE UNIQUE INDEX ON sensorpush (device_id, time DESC);
 
 -- Values from obs_st on https://weatherflow.github.io/SmartWeather/api/swagger/#!/observations/getObservationsByDeviceId
 -- Allow NULL for readings as I've seen that come back from the API. Would love to tighten it up to only ones that can return null 
@@ -40,7 +40,7 @@ CREATE TABLE tempest (
     precipitation_analysis_type DOUBLE PRECISION
 );
 SELECT create_hypertable('tempest', 'time');
-CREATE INDEX ON tempest (device_id, time DESC);
+CREATE UNIQUE INDEX ON tempest (device_id, time DESC);
 
 CREATE VIEW celsius (time, device_id, celsius)  
      AS (SELECT time, device_id, celsius FROM sensorpush UNION ALL SELECT time, device_id, celsius FROM tempest);

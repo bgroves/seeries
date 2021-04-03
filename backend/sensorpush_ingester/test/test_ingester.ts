@@ -1,11 +1,14 @@
-import baretest from "baretest";
 import assert from "assert";
 import nock from "nock";
 
-import { createAuthorizer, backfiller, ingest } from "../src/ingester";
+import { createAuthorizer, backfiller, Samples, fetchLatest } from "../src/ingester";
 import { AxiosError } from "axios";
+import { Caretest } from "../../shared/src/caretest";
+import { ephemerally } from "../../shared/src/db";
+import { insert } from "../src/db";
 
-const test = baretest("ingester");
+const suite = new Caretest("ingester");
+export default suite;
 
 const ACCEPTED_EMAIL = "real_user@example.com";
 const ACCEPTED_PASSWORD = "correct_password";
@@ -108,7 +111,7 @@ function nockSensorFetch() {
     );
 }
 
-test("Working auth", async () => {
+suite.test("Working auth", async () => {
   nockAuth();
   const authorizer = createAuthorizer(ACCEPTED_EMAIL, ACCEPTED_PASSWORD);
   const auth = await authorizer();
@@ -123,7 +126,7 @@ function isMessage(data: unknown): data is { message: string } {
   return (data as { message: string }).message !== undefined;
 }
 
-test("Wrong email", async () => {
+suite.test("Wrong email", async () => {
   const badEmail = "not_real_user@example.com";
   nock("https://api.sensorpush.com")
     .post("/api/v1/oauth/authorize", {
@@ -147,29 +150,35 @@ test("Wrong email", async () => {
   assert.fail("Expected request without start to raise a 403");
 });
 
-test("Working backfill", async () => {
+suite.test("Working backfill", async () => {
   nockSensorFetch();
   const mockAuthorizer = () => {
     return Promise.resolve(AUTHORIZED_ACCESS_TOKEN);
   };
+  const results: (undefined | Date)[] = [undefined, new Date("2020-12-28T10:23:45.000Z")];
+  function latestTime(): Promise<undefined | Date> {
+    return Promise.resolve(results.shift());
+  }
   const samples = [];
-  for await (const item of backfiller(DEVICE_ID, mockAuthorizer)) {
+  for await (const item of backfiller(DEVICE_ID, mockAuthorizer, latestTime)) {
     samples.push(item);
   }
   assert.strictEqual(1, samples.length);
   assert.strictEqual(2, samples[0]?.samples.length);
 });
 
-test("Full ingest", async () => {
+suite.test("Full ingest", async () => {
   nockAuth();
   nockSensorList();
   nockSensorFetch();
-  const samples = [];
-  for await (const item of ingest(ACCEPTED_EMAIL, ACCEPTED_PASSWORD)) {
-    samples.push(item);
-  }
+  const samples: Samples[] = [];
+  await ephemerally(async () => {
+    for await (const sample of fetchLatest(createAuthorizer(ACCEPTED_EMAIL, ACCEPTED_PASSWORD))) {
+      await insert(sample);
+      samples.push(sample);
+    }
+  });
+
   assert.strictEqual(1, samples.length);
   assert.strictEqual(2, samples[0]?.samples.length);
 });
-
-void test.run();

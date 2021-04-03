@@ -12,7 +12,10 @@
     "typescript": "^4.1.3"
   },
   "scripts": {
-    "build": "tsc --build tsconfig.all.json"
+    "build": "tsc --build tsconfig.all.json",
+    "pretest": "npm run build",
+    "test": "node build/test",
+    "prprep": "npm test && eslint . && prettier --write . && docker build ."
   },
   "workspaces": [
     "api",

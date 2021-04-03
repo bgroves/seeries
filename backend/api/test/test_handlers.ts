@@ -1,8 +1,9 @@
-import baretest from "baretest";
+import { Caretest } from "../../shared/src/caretest";
 import assert from "assert";
 import axios, { AxiosError } from "axios";
-const test = baretest("fetch_series");
+export const suite = new Caretest("handlers");
 
+import { server } from "../src/index";
 const baseStart = "2020-10-01T00:00:00.000Z";
 const baseEnd = "2020-10-01T00:30:00.000Z";
 const baseParams = {
@@ -24,7 +25,7 @@ function isAxiosError(error: unknown): error is AxiosError {
   return (error as AxiosError).isAxiosError !== undefined;
 }
 
-test("Fetch simple series", async () => {
+suite.test("Fetch simple series", async () => {
   const resp = await axios.get<Segment[]>("http://localhost:8000/series", {
     params: baseParams,
   });
@@ -35,7 +36,7 @@ test("Fetch simple series", async () => {
   assert.strictEqual(segment.points.length, baseParams.points);
 });
 
-test("Fetch completely missing range", async () => {
+suite.test("Fetch completely missing range", async () => {
   const params = { ...baseParams };
   params.start = "2020-10-03T00:00:00.000Z";
   params.end = "2020-10-03T00:10:00.000Z";
@@ -45,7 +46,7 @@ test("Fetch completely missing range", async () => {
   assert.strictEqual(resp.data.length, 0);
 });
 
-test("Fetch same start and end", async () => {
+suite.test("Fetch same start and end", async () => {
   const params = { ...baseParams };
   params.end = params.start;
   const resp = await axios.get<Segment[]>("http://localhost:8000/series", {
@@ -54,7 +55,7 @@ test("Fetch same start and end", async () => {
   assert.strictEqual(resp.data.length, 0);
 });
 
-test("Fetch half missing range", async () => {
+suite.test("Fetch half missing range", async () => {
   const params = { ...baseParams };
   params.start = "2020-10-03T00:00:00.000Z";
   params.end = "2020-10-03T00:20:00.000Z";
@@ -68,7 +69,7 @@ test("Fetch half missing range", async () => {
   assert.strictEqual(segment.points.length, 5);
 });
 
-test("Fetch gappy range", async () => {
+suite.test("Fetch gappy range", async () => {
   const params = { ...baseParams };
   params.start = "2020-10-03T01:00:00.000Z";
   params.end = "2020-10-03T01:10:00.000Z";
@@ -86,7 +87,7 @@ test("Fetch gappy range", async () => {
   assert.strictEqual(lastSegment.points.length, 1);
 });
 
-test("Fetch gappy range at low resolution", async () => {
+suite.test("Fetch gappy range at low resolution", async () => {
   const params = { ...baseParams };
   params.start = "2020-10-03T01:00:00.000Z";
   params.end = "2020-10-03T02:00:00.000Z";
@@ -100,7 +101,7 @@ test("Fetch gappy range at low resolution", async () => {
   assert.strictEqual(firstSegment.points.length, 10);
 });
 
-test("Fetch small range at excessively high resolution", async () => {
+suite.test("Fetch small range at excessively high resolution", async () => {
   const params = { ...baseParams };
   params.points = 16_384;
   const resp = await axios.get<Segment[]>("http://localhost:8000/series", {
@@ -110,7 +111,7 @@ test("Fetch small range at excessively high resolution", async () => {
   assert.strictEqual(params.start, resp.data[0].start);
 });
 
-test("Fetch large series", async () => {
+suite.test("Fetch large series", async () => {
   const params = { ...baseParams };
   params.points = 16_384;
   params.start = "2020-09-01T00:00:00.000Z";
@@ -124,7 +125,7 @@ test("Fetch large series", async () => {
   assert.strictEqual(segment.points.length, params.points);
 });
 
-test("Leave out params", async () => {
+suite.test("Leave out params", async () => {
   const params: { [key: string]: string | number } = { ...baseParams };
   delete params["start"];
   try {
@@ -140,7 +141,7 @@ test("Leave out params", async () => {
   assert.fail("Expected request without start to raise a 400");
 });
 
-test("Too many points", async () => {
+suite.test("Too many points", async () => {
   const params = { ...baseParams };
   params.points = 17_000;
   try {
@@ -155,7 +156,7 @@ test("Too many points", async () => {
   assert.fail("Expected request with lots of points to raise a 400");
 });
 
-test("Unknown aggregation", async () => {
+suite.test("Unknown aggregation", async () => {
   const params = { ...baseParams };
   params.aggregation = "; DROP TABLES;";
   try {
@@ -171,7 +172,7 @@ test("Unknown aggregation", async () => {
   assert.fail("Expected unknown aggregation to raise a 400");
 });
 
-test("Unknown device", async () => {
+suite.test("Unknown device", async () => {
   const params = { ...baseParams };
   params.device_name = "; DROP TABLES;";
   try {
@@ -187,7 +188,7 @@ test("Unknown device", async () => {
   assert.fail("Expected unknown device_name to raise a 400");
 });
 
-test("Wrong sensor for device type", async () => {
+suite.test("Wrong sensor for device type", async () => {
   const params = { ...baseParams };
   params.sensor = "; DROP TABLES;";
   try {
@@ -203,7 +204,7 @@ test("Wrong sensor for device type", async () => {
   assert.fail("Expected request for a sensorpush device with a tempest-only sensor to raise a 400");
 });
 
-test("End before start", async () => {
+suite.test("End before start", async () => {
   const params = { ...baseParams };
   params.end = params.start;
   params.start = baseParams.end;
@@ -220,8 +221,6 @@ test("End before start", async () => {
   assert.fail("Expected request for a sensorpush device with a tempest-only sensor to raise a 400");
 });
 
-import { server } from "../src/index";
-test.after(() => {
+suite.after(() => {
   server.close();
 });
-void test.run();
