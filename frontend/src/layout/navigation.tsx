@@ -9,7 +9,7 @@ import NavLink from './navigation-link';
 
 export interface NavigationProps {
   theme: AppTheme;
-  dashboards: Dashboard[];
+  dashboards?: Dashboard[];
 }
 
 export default function Navigation({ dashboards, theme }: NavigationProps) {
@@ -26,7 +26,7 @@ export default function Navigation({ dashboards, theme }: NavigationProps) {
       <Navbar.Toggle aria-controls="seeries-navbar-nav" />
       <Navbar.Collapse id="seeries-navbar-nav">
         <Nav className="mr-auto">
-          {dashboards.map((it) => {
+          {dashboards?.map((it) => {
             return (
               <NavLink key={it.name} href={'/dashboards/' + it.name}>
                 {it.title}

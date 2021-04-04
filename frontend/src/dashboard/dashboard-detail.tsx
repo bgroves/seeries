@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Row from 'react-bootstrap/Row';
-import { useNavigation } from 'react-navi';
+import { useHistory } from 'react-router-dom';
 import GraphViewModel from '../graph/graph-view-model';
 import Dashboard from './dashboard';
 import DashboardDetailForm from './dashboard-detail-form';
@@ -16,10 +16,10 @@ export default function DashboardDetail({
   graphs,
 }: DashboardDetailProps): React.ReactElement {
   const [dummy, setDummy] = useState<number>(0);
-  const navigation = useNavigation();
+  const history = useHistory();
 
   function updateWindow(): void {
-    navigation.navigate(
+    history.push(
       '/dashboards/' +
         dashboard.name +
         '?start=' +

@@ -1,5 +1,5 @@
 import React from 'react';
-import Navbar from 'react-bootstrap/Navbar';
+import { Link } from 'react-router-dom';
 import { AppTheme } from '../app-theme';
 import rabbitDark from './rabbit-dark.svg';
 import rabbitLight from './rabbit-light.svg';
@@ -22,7 +22,7 @@ export default function NavigationBrand({
   const navTheme = theme.navbar;
 
   return (
-    <Navbar.Brand href="/home">
+    <Link to="/dashboards" className="navbar-brand">
       <img
         src={logos[navTheme.variant]}
         width="30"
@@ -31,6 +31,6 @@ export default function NavigationBrand({
         alt={name}
       />
       {' ' + name}
-    </Navbar.Brand>
+    </Link>
   );
 }

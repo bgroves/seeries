@@ -1,5 +1,5 @@
 import React from 'react';
-import {Link} from 'react-navi';
+import { NavLink } from 'react-router-dom';
 
 export interface NavigationDropdownLinkProps {
   href: string;
@@ -7,11 +7,19 @@ export interface NavigationDropdownLinkProps {
   children: any;
 }
 
-export default function NavigationDropdownLink({href, exact, children}: NavigationDropdownLinkProps) {
+export default function NavigationDropdownLink({
+  href,
+  exact,
+  children,
+}: NavigationDropdownLinkProps) {
   return (
-    <Link href={href}
-          exact={exact}
-          className="dropdown-item"
-          activeClassName="selected">{children}</Link>
+    <NavLink
+      to={href}
+      exact={exact}
+      className="dropdown-item"
+      activeClassName="selected"
+    >
+      {children}
+    </NavLink>
   );
 }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-navi';
+import { Link } from 'react-router-dom';
 import { AppTheme } from '../app-theme';
 import Dashboard from './dashboard';
 
@@ -16,7 +16,7 @@ function DashboardListItem({ item, theme }: DashboardListItemProps) {
       className={
         'list-group-item list-group-item-action list-group-item-' + listTheme.bg
       }
-      href={'/dashboards/' + item.name}
+      to={'/dashboards/' + item.name}
     >
       <h5>{item.title}</h5>
       <ul>

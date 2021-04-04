@@ -1,28 +1,24 @@
 import React from 'react';
-import { AppTheme } from '../app-theme';
 import Dashboard from '../dashboard/dashboard';
 import PageFooter from './page-footer';
 import PageHeader from './page-header';
+import PageErrorBoundary from './page-error-boundary';
+import { useAppTheme } from '../app-theme';
 import './page.scss';
 
 export interface PageProps {
+  title: string;
   dashboards: Dashboard[];
   children: any;
-  theme: AppTheme;
-  toggleTheme: () => string;
 }
 
-export default function Page({
-  dashboards,
-  theme,
-  children,
-  toggleTheme,
-}: PageProps) {
+export default function Page({ dashboards, children, title }: PageProps) {
+  const [theme, toggleAppTheme] = useAppTheme();
   const pageTheme = theme.page;
 
   return (
     <div className={'page page-' + pageTheme.bg}>
-      <PageHeader theme={theme} dashboards={dashboards} />
+      <PageHeader theme={theme} dashboards={dashboards} title={title} />
       <main
         className={
           'page-main container-fluid bg-' +
@@ -31,9 +27,9 @@ export default function Page({
           pageTheme.text
         }
       >
-        {children}
+        <PageErrorBoundary children={children}></PageErrorBoundary>
       </main>
-      <PageFooter theme={theme} toggleTheme={toggleTheme} />
+      <PageFooter theme={theme} toggleTheme={toggleAppTheme} />
     </div>
   );
 }

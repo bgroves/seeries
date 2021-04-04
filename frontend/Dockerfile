@@ -1,9 +1,6 @@
 FROM node:12.19-alpine as build-app
 # only copy things needed to install dependencies in builder image
 COPY package.json yarn.lock tsconfig.json ./
-# node-gyp (ie. node-sass) needs python for some reason
-RUN apk add --update --no-cache python make g++
-RUN npm config set python /usr/bin/python
 RUN yarn install
 
 # the nginx config in here isn't really needed but this lets the final stage use this image's build context to keep it small

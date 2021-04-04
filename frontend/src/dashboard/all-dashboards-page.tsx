@@ -1,28 +1,32 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
-import { useAppTheme } from '../app-theme';
-import Page from '../layout/page';
 import Dashboard from './dashboard';
 import DashboardList from './dashboard-list';
+import { useAppTheme } from '../app-theme';
+import labels from '../labels';
 
 export interface AllDashboardsPageProps {
   dashboards: Dashboard[];
+  setTitle: (title: string) => void;
 }
 
 function AllDashboardsPage({
   dashboards,
+  setTitle,
 }: AllDashboardsPageProps): React.ReactElement {
-  const [theme, toggleAppTheme] = useAppTheme();
+  let [theme] = useAppTheme();
+
+  useEffect(() => {
+    setTitle(labels('allDashboardsPageTitle'));
+  }, [setTitle]);
 
   return (
-    <Page dashboards={dashboards} theme={theme} toggleTheme={toggleAppTheme}>
-      <Row>
-        <Col sm={6} md={5} lg={4}>
-          <DashboardList items={dashboards} theme={theme} />
-        </Col>
-      </Row>
-    </Page>
+    <Row>
+      <Col sm={6} md={5} lg={4}>
+        <DashboardList items={dashboards} theme={theme} />
+      </Col>
+    </Row>
   );
 }
 

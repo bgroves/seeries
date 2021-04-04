@@ -11,6 +11,13 @@ export interface DashboardMap {
   [key: string]: Dashboard;
 }
 
+export interface DashboardParams {
+  start?: any;
+  end?: any;
+  points?: any;
+  live?: any;
+}
+
 class Dashboard implements GraphWindow {
   constructor(
     public name: string,
@@ -39,7 +46,7 @@ class Dashboard implements GraphWindow {
     return Object.values(byName);
   }
 
-  withParams(params: any): Dashboard {
+  withParams(params: DashboardParams): Dashboard {
     const result = this.clone();
     const start = params.start;
     if (isDatelike(start)) {
@@ -71,23 +78,6 @@ class Dashboard implements GraphWindow {
       this.graphs
     );
   }
-
-  // static fromJSON(json: DashboardJSON | string): Dashboard {
-  //   if (typeof json === 'string') {
-  //     return JSON.parse(json, Dashboard.reviver);
-  //   } else {
-  //     const graph = Object.create(Dashboard.prototype);
-  //     return Object.assign(graph, json, {
-  //       start: new Date(json.start),
-  //       end: new Date(json.end),
-  //       graphs: json.graphs.map(DashboardGraph.fromJSON),
-  //     });
-  //   }
-  // }
-
-  // static reviver(key: string, value: any): any {
-  //   return key === '' ? Dashboard.fromJSON(value) : value;
-  // }
 }
 
 export default Dashboard;
